@@ -35,6 +35,9 @@ while running :
     # Time control.
     delta_time = clock.tick() / 1000
 
+    ## UPDATE ##
+    player_rect = pygame.Rect((win_x / 2) - 20, (win_y / 2) - 20, 40, 40)
+
     ## EVENT HANDLER ##
     for event in pygame.event.get() :
         ## KEYBOARD ONE-PRESS INPUT ##
@@ -81,8 +84,11 @@ while running :
     pygame.draw.circle(win, (0, 0, 0), (win_x / 2, win_y / 2), 20)
 
     # Draws enemies.
-    enemy_surf, enemy_x, enemy_y = test_hammer.update(player_x, player_y)
+    enemy_surf, enemy_x, enemy_y = test_hammer.update(player_x, player_y, player_rect)
     win.blit(enemy_surf, (enemy_x, enemy_y))
+
+    # Temp Code
+    pygame.draw.rect(win, (255, 0, 0), player_rect, 1)
 
     # Finalizes render.
     pygame.display.flip()

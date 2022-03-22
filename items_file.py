@@ -18,8 +18,9 @@ class Item :
         # Places position values.
         self.mas_x, self.mas_y = pos[0], pos[1]
 
-    def update (self, player_x, player_y) :
-        """Updates positional values, creates work surface, returns to caller. """
+    def update (self, player_x, player_y, player_rect) :
+        """Updates positional values, creates work surface, returns to caller. Ideally, should only be ran when
+        Item would technically be in view."""
 
         # Updates positional value.
         pos_x = self.mas_x - player_x
@@ -30,5 +31,7 @@ class Item :
             work_surface = pygame.Surface((30, 30))
             pygame.draw.rect(work_surface, (255, 255, 0), (0, 0, 30, 30))
 
+        # Collision detection.
+        collide_rect = pygame.Rect(pos_x, pos_y, 30, 30)
 
         return work_surface, pos_x, pos_y
