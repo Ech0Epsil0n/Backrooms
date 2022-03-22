@@ -4,11 +4,13 @@
 
 ## IMPORTS AND INITIALIZATIONS ##
 import pygame
+from items_file import Item
 
 # Pygame standard initialization.
 pygame.init()
 win_x, win_y = 800, 600
 win = pygame.display.set_mode((win_x, win_y))
+pygame.display.set_caption("Into the Backrooms")
 clock = pygame.time.Clock
 clock = pygame.time.Clock()
 running = True
@@ -16,6 +18,17 @@ running = True
 # Establishes baseline variables.
 move_speed = 100
 player_x, player_y = 0, 0
+
+# Loads assets.
+map_test = pygame.image.load("Backrooms assets\\Map_layout.png")
+
+# Creates map surface to blit/transform.
+map_surf = pygame.Surface((int(map_test.get_width()), int(map_test.get_height())))
+map_surf.blit(map_test, (0, 0))
+map_surf = pygame.transform.scale(map_surf, (win_x * 2, win_y * 2))
+
+# Generates items (temporary: will be relocated to map_generator script)
+test_hammer = Item(0, (1515 - player_x, 625 - player_y))
 
 ## MAIN GAMEPLAY LOOP ##
 while running :
@@ -39,7 +52,7 @@ while running :
         ## KEYBOARD ONE-UP INPUT ##
         if event.type == pygame.KEYUP :
             # Resets move speed.
-            if pygame.key == pygame.K_LSHIFT or pygame.key == pygame.K_LCTRL :
+            if event.key == pygame.K_LSHIFT or pygame.key == pygame.K_LCTRL :
                 move_speed = 100
 
     ## CONTINUOUS KEYBOARD INPUT ##
@@ -61,11 +74,15 @@ while running :
     ## RENDERING ##
     win.fill((0, 0, 0))
 
-    # Temp code to showcase movement.
-    pygame.draw.rect(win, (255, 0, 0), (0 - player_x, 0 - player_y, 10, 10), 1)
+    # Blits map.
+    win.blit(map_surf, (0 - player_x, 0 - player_y))
 
     # Draws player.
-    pygame.draw.circle(win, (255, 255, 255), (win_x / 2, win_y / 2), 20)
+    pygame.draw.circle(win, (0, 0, 0), (win_x / 2, win_y / 2), 20)
+
+    # Draws enemies.
+    enemy_surf, enemy_x, enemy_y = test_hammer.update(player_x, player_y)
+    win.blit(enemy_surf, (enemy_x, enemy_y))
 
     # Finalizes render.
     pygame.display.flip()
