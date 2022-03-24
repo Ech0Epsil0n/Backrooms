@@ -121,6 +121,9 @@ while running :
                         print(items)
                         for item in inventory:
                             print(item)
+
+    # Inventory rendering
+    pygame.draw.rect(win, (0, 0, 0), (700, 500, 50, 50))
             
     pygame.display.flip()
 
