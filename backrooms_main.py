@@ -22,6 +22,8 @@ player_size = 20
 sprinting_bool = False
 stamina = 100
 stamina_recharge = 0
+inv_color1 = (255, 0, 0)
+inv_color2 = (255, 0, 0)
 
 # Loads assets.
 map_test = pygame.image.load("Backrooms assets//Map_layout.png")
@@ -93,7 +95,12 @@ while running :
                     if player_rect.colliderect(item.collide_rect) :
                         items.remove(item)
                         inventory.append(item)
-                        print(inventory)
+
+                        if len(inventory) == 1 :
+                            inv_color1 = (0, 255, 0)
+
+                        else :
+                            inv_color2 = (0, 255, 0)
 
         ## KEYBOARD ONE-UP INPUT ##
         if event.type == pygame.KEYUP :
@@ -132,8 +139,15 @@ while running :
         item_surf, item_x, item_y = item.update(player_x, player_y, player_rect)
         win.blit(item_surf, (item_x, item_y))
 
-    # Temp Code
-    pygame.draw.rect(win, (255, 0, 0), player_rect, 1)
+    ## UI RENDERING ##
+
+    # Draws inventory items.
+    pygame.draw.rect(win, inv_color1, (win_x - (win_x / 10), win_y - (win_y / 10), win_x / 20, win_y / 10))
+    pygame.draw.rect(win, inv_color2, (win_x - (win_x / 20), win_y - (win_y / 10), win_x / 20, win_y / 10))
+
+    # Draws stamina bar.
+    pygame.draw.rect(win, (0, 0, 0), (win_x / 30, win_y / 40, win_x / 3, win_y / 15))
+    pygame.draw.rect(win, (0, 255, 0), (win_x / 25, win_y / 35, (win_x / 2.95) * (stamina / 100), win_y / 13))
 
     pygame.display.flip()
 
