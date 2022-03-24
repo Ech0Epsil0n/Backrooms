@@ -15,13 +15,11 @@ clock = pygame.time.Clock
 clock = pygame.time.Clock()
 running = True
 
-
 # Establishes baseline variables.
 move_speed = 100
 player_x, player_y = 0, 0
 player_size = 20
 sprinting_bool = False
-pickup = False
 stamina = 100
 stamina_recharge = 0
 
@@ -93,8 +91,9 @@ while running :
             if event.key == pygame.K_e :
                 for item in items :
                     if player_rect.colliderect(item.collide_rect) :
-                        print(f"Picked up {item.name}.")
                         items.remove(item)
+                        inventory.append(item)
+                        print(inventory)
 
         ## KEYBOARD ONE-UP INPUT ##
         if event.type == pygame.KEYUP :
