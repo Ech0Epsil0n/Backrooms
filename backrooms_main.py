@@ -4,6 +4,7 @@
 
 ## IMPORTS AND INITIALIZATIONS ##
 import pygame
+pickup = False
 from items_file import Item
 
 # Pygame standard initialization.
@@ -20,7 +21,7 @@ move_speed = 100
 player_x, player_y = 0, 0
 
 # Loads assets.
-map_test = pygame.image.load("Backrooms assets\\Map_layout.png")
+map_test = pygame.image.load("Backrooms assets//Map_layout.png")
 
 # Creates map surface to blit/transform.
 map_surf = pygame.Surface((int(map_test.get_width()), int(map_test.get_height())))
@@ -28,7 +29,11 @@ map_surf.blit(map_test, (0, 0))
 map_surf = pygame.transform.scale(map_surf, (win_x * 2, win_y * 2))
 
 # Generates items (temporary: will be relocated to map_generator script)
-test_hammer = Item(0, (1515 - player_x, 625 - player_y))
+items = []
+inventory = []
+test_hammer = Item(0, (1526 - player_x, 645 - player_y), "Hammer", (0,255,0))
+items.append(test_hammer)
+print(items)
 
 ## MAIN GAMEPLAY LOOP ##
 while running :
@@ -41,6 +46,8 @@ while running :
     ## EVENT HANDLER ##
     for event in pygame.event.get() :
         ## KEYBOARD ONE-PRESS INPUT ##
+        if event.type == pygame.QUIT:
+            running = False
         if event.type == pygame.KEYDOWN :
             if event.key == pygame.K_ESCAPE :
                 running = False
@@ -57,6 +64,16 @@ while running :
             # Resets move speed.
             if event.key == pygame.K_LSHIFT or pygame.key == pygame.K_LCTRL :
                 move_speed = 100
+
+    
+
+
+##    while pickup == True:
+##        for event in pygame.event.get():
+##            if event.type == pygame.KEYDOWN:
+##                if event.key == pygame.K_e:
+##                    items.pop(test_hammer)
+##                    print(items)
 
     ## CONTINUOUS KEYBOARD INPUT ##
     keys = pygame.key.get_pressed()
@@ -84,13 +101,27 @@ while running :
     pygame.draw.circle(win, (0, 0, 0), (win_x / 2, win_y / 2), 20)
 
     # Draws enemies.
-    enemy_surf, enemy_x, enemy_y = test_hammer.update(player_x, player_y, player_rect)
-    win.blit(enemy_surf, (enemy_x, enemy_y))
+    #enemy_surf, enemy_x, enemy_y = test_hammer.update(player_x, player_y, player_rect)
+    #win.blit(enemy_surf, (enemy_x, enemy_y))
 
     # Temp Code
     pygame.draw.rect(win, (255, 0, 0), player_rect, 1)
-
-    # Finalizes render.
+    
+    # Finalizes render / Inventory
+    for item in items:
+        item.render(map_surf)
+        if player_x + 40 > item.mas_x-400 > player_x -40 and player_y + 40 > item.mas_y - 300 > player_y -40:
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_e:
+                        item.color = (255,255,255)
+                        item.render(map_surf)
+                        items.remove(item)
+                        inventory.append(item)
+                        print(items)
+                        for item in inventory:
+                            print(item)
+            
     pygame.display.flip()
 
 # If running is set to False, runs this code.
