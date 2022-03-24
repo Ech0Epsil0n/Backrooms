@@ -19,13 +19,12 @@ running = True
 move_speed = 100
 player_x, player_y = 0, 0
 player_size = 20
+camera_x, camera_y = 0, 0
 sprinting_bool = False
 stamina = 100
 stamina_recharge = 0
 inv_color1 = (101, 67, 33)
 inv_color2 = (101, 67, 33)
-inv_color3 = (0, 0, 0)
-inv_color4 = (0, 0, 0)
 font = pygame.font.SysFont("ComicSans", 14)
 
 # Loads assets.
@@ -54,7 +53,7 @@ while running :
     delta_time = clock.tick() / 1000
 
     ## UPDATE ##
-    player_rect = pygame.Rect((win_x / 2) - 20, (win_y / 2) - 20, 40, 40)
+    player_rect = pygame.Rect(player_x - camera_x, player_y - camera_y, 40, 40)
     stamina_recharge -= 1 * delta_time
 
     # Handles stamina generation, depletion, and elimination.
@@ -124,18 +123,47 @@ while running :
     if keys[pygame.K_a] :
         player_x -= move_speed * delta_time
 
+    # Updates camera positional values.
+    camera_x, camera_y = player_x - (win_x / 2), player_y - (win_y / 2)
+
+    # Player bounding.
+    if player_x > (map_surf.get_width()) - (player_size / 2) :
+        player_x = (map_surf.get_width()) - (player_size / 2)
+
+    if player_x < 0 + (player_size / 2):
+        player_x = 0 + (player_size / 2)
+
+    if player_y > (map_surf.get_height()) - (player_size / 2) :
+        player_y = (map_surf.get_height()) - (player_size / 2)
+
+    if player_y < 0 + (player_size / 2):
+        player_y = 0 + (player_size / 2)
+
+    # Camera bounding.
+    if camera_x > map_surf.get_width() - ((win_x / 2) * 2) :
+        camera_x = map_surf.get_width() - ((win_x / 2) * 2)
+
+    if camera_x < 0 :
+        camera_x = 0
+
+    if camera_y > map_surf.get_height() - ((win_y / 2) * 2) :
+        camera_y = map_surf.get_height() - ((win_y / 2) * 2)
+
+    if camera_y < 0 :
+        camera_y = 0
+
     ## RENDERING ##
     win.fill((0, 0, 0))
 
     # Blits map.
-    win.blit(map_surf, (0 - player_x, 0 - player_y))
+    win.blit(map_surf, (0, 0), (camera_x, camera_y, win_x, win_y))
 
     # Draws player.
-    pygame.draw.circle(win, (0, 0, 0), (win_x / 2, win_y / 2), player_size)
+    pygame.draw.circle(win, (0, 0, 0), (player_x - camera_x, player_y - camera_y), player_size)
 
     # Draws items.
     for item in items :
-        item_surf, item_x, item_y = item.update(player_x, player_y, player_rect)
+        item_surf, item_x, item_y = item.update(camera_x, camera_y, player_rect)
         win.blit(item_surf, (item_x, item_y))
 
     ## UI RENDERING ##
@@ -143,8 +171,9 @@ while running :
     # Draws inventory items.
     pygame.draw.rect(win, inv_color1, (win_x - (win_x / 5.5), win_y - (win_y / 7), win_x / 13, win_y / 10))
     pygame.draw.rect(win, inv_color2, (win_x - (win_x / 10), win_y - (win_y / 7), win_x / 13, win_y / 10))
-    pygame.draw.rect(win, inv_color3, (win_x - (win_x / 5.5), win_y - (win_y / 7), win_x / 13, win_y / 10), 5)
-    pygame.draw.rect(win, inv_color4, (win_x - (win_x / 10), win_y - (win_y / 7), win_x / 13, win_y / 10), 5)
+    pygame.draw.rect(win, (0, 0, 0), (win_x - (win_x / 5.5), win_y - (win_y / 7), win_x / 13, win_y / 10), 5)
+    pygame.draw.rect(win, (0, 0, 0), (win_x - (win_x / 10), win_y - (win_y / 7), win_x / 13, win_y / 10), 5)
+
     if len(inventory) == 1 :
         win.blit(inv_item1, (win_x - (win_x / 5.6), win_y - (win_y / 10)))
 
