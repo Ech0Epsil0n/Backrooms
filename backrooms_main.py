@@ -42,9 +42,9 @@ inventory = []
 
 # Test code.
 test_hammer = Item(0, (1526 - player_x, 645 - player_y), "Hammer", (0, 255, 0))
-inv_item1 = font.render("Hammer", True, (255, 255, 255))
+inv_item1 = font.render(f"{test_hammer}", True, (255, 255, 255))
 test_bozo = Item(0, (300 - player_x, 300 - player_y), "Bozo", (255, 255, 0))
-inv_item2 = font.render("Bozo", True, (255, 255, 255))
+inv_item2 = font.render(f"{test_bozo}", True, (255, 255, 255))
 items.append(test_hammer)
 items.append(test_bozo)
 
