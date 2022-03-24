@@ -123,9 +123,7 @@ while running :
                             print(item)
 
     # Inventory rendering
-    
-    inv_item1 = pygame.draw.Rect(win, (0, 0, 0), (750, 550, 50, 50))
-    win.blit(inv_item1)
+    pygame.draw.rect(win, (0, 0, 0), (700, 500, 50, 50))
             
     pygame.display.flip()
 
