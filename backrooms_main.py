@@ -4,7 +4,6 @@
 
 ## IMPORTS AND INITIALIZATIONS ##
 import pygame
-pickup = False
 from items_file import Item
 
 # Pygame standard initialization.
@@ -16,9 +15,15 @@ clock = pygame.time.Clock
 clock = pygame.time.Clock()
 running = True
 
+
 # Establishes baseline variables.
 move_speed = 100
 player_x, player_y = 0, 0
+player_size = 20
+sprinting_bool = False
+pickup = False
+stamina = 100
+stamina_recharge = 0
 
 # Loads assets.
 map_test = pygame.image.load("Backrooms assets//Map_layout.png")
@@ -31,9 +36,12 @@ map_surf = pygame.transform.scale(map_surf, (win_x * 2, win_y * 2))
 # Generates items (temporary: will be relocated to map_generator script)
 items = []
 inventory = []
-test_hammer = Item(0, (1526 - player_x, 645 - player_y), "Hammer", (0,255,0))
+
+# Test code.
+test_hammer = Item(0, (1526 - player_x, 645 - player_y), "Hammer", (0, 255, 0))
+test_bozo = Item(0, (300 - player_x, 300 - player_y), "Bozo", (255, 255, 0))
 items.append(test_hammer)
-print(items)
+items.append(test_bozo)
 
 ## MAIN GAMEPLAY LOOP ##
 while running :
@@ -42,38 +50,58 @@ while running :
 
     ## UPDATE ##
     player_rect = pygame.Rect((win_x / 2) - 20, (win_y / 2) - 20, 40, 40)
+    stamina_recharge -= 1 * delta_time
+
+    # Handles stamina generation, depletion, and elimination.
+    if sprinting_bool == False :
+        stamina += 10 * delta_time
+
+    else :
+        stamina -= 25 * delta_time
+
+    if stamina <= 0 :
+        sprinting_bool = False
+        stamina_recharge = 3
+        move_speed = 100
+
+    # Sprint bounding.
+    if stamina > 100 :
+        stamina = 100
+
+    elif stamina <= 0 :
+        stamina = 0
 
     ## EVENT HANDLER ##
     for event in pygame.event.get() :
         ## KEYBOARD ONE-PRESS INPUT ##
         if event.type == pygame.QUIT:
             running = False
+
         if event.type == pygame.KEYDOWN :
             if event.key == pygame.K_ESCAPE :
                 running = False
 
             # Speed control using shift/control.
-            if event.key == pygame.K_LSHIFT :
+            if event.key == pygame.K_LSHIFT and stamina_recharge <= 0 :
                 move_speed = 300
+                sprinting_bool = True
 
             elif event.key == pygame.K_LCTRL :
                 move_speed = 25
+
+            # Item pickup command.
+            if event.key == pygame.K_e :
+                for item in items :
+                    if player_rect.colliderect(item.collide_rect) :
+                        print(f"Picked up {item.name}.")
+                        items.remove(item)
 
         ## KEYBOARD ONE-UP INPUT ##
         if event.type == pygame.KEYUP :
             # Resets move speed.
             if event.key == pygame.K_LSHIFT or pygame.key == pygame.K_LCTRL :
                 move_speed = 100
-
-    
-
-
-##    while pickup == True:
-##        for event in pygame.event.get():
-##            if event.type == pygame.KEYDOWN:
-##                if event.key == pygame.K_e:
-##                    items.pop(test_hammer)
-##                    print(items)
+                sprinting_bool = False
 
     ## CONTINUOUS KEYBOARD INPUT ##
     keys = pygame.key.get_pressed()
@@ -98,32 +126,17 @@ while running :
     win.blit(map_surf, (0 - player_x, 0 - player_y))
 
     # Draws player.
-    pygame.draw.circle(win, (0, 0, 0), (win_x / 2, win_y / 2), 20)
+    pygame.draw.circle(win, (0, 0, 0), (win_x / 2, win_y / 2), player_size)
 
-    # Draws enemies.
-    #enemy_surf, enemy_x, enemy_y = test_hammer.update(player_x, player_y, player_rect)
-    #win.blit(enemy_surf, (enemy_x, enemy_y))
+    # Draws items.
+    for item in items :
+        item_surf, item_x, item_y = item.update(player_x, player_y, player_rect)
+        win.blit(item_surf, (item_x, item_y))
 
     # Temp Code
     pygame.draw.rect(win, (255, 0, 0), player_rect, 1)
-    
-    # Finalizes render / Inventory
-    for item in items:
-        item.render(map_surf)
-        if player_x + 40 > item.mas_x-400 > player_x -40 and player_y + 40 > item.mas_y - 300 > player_y -40:
-            for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_e:
-                        item.color = (255,255,255)
-                        item.render(map_surf)
-                        items.remove(item)
-                        inventory.append(item)
-                        print(items)
-                        for item in inventory:
-                            print(item)
-            
+
     pygame.display.flip()
 
 # If running is set to False, runs this code.
 pygame.quit()
-
