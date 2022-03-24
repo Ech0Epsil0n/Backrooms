@@ -22,8 +22,13 @@ player_size = 20
 sprinting_bool = False
 stamina = 100
 stamina_recharge = 0
-inv_color1 = (255, 0, 0)
-inv_color2 = (255, 0, 0)
+inv_color1 = (101, 67, 33)
+inv_color2 = (101, 67, 33)
+inv_color3 = (0, 0, 0)
+inv_color4 = (0, 0, 0)
+font = pygame.font.SysFont("ComicSans", 10)
+
+
 
 # Loads assets.
 map_test = pygame.image.load("Backrooms assets//Map_layout.png")
@@ -142,12 +147,14 @@ while running :
     ## UI RENDERING ##
 
     # Draws inventory items.
-    pygame.draw.rect(win, inv_color1, (win_x - (win_x / 10), win_y - (win_y / 10), win_x / 20, win_y / 10))
-    pygame.draw.rect(win, inv_color2, (win_x - (win_x / 20), win_y - (win_y / 10), win_x / 20, win_y / 10))
+    pygame.draw.rect(win, inv_color1, (win_x - (win_x / 5.5), win_y - (win_y / 7), win_x / 13, win_y / 10))
+    pygame.draw.rect(win, inv_color2, (win_x - (win_x / 10), win_y - (win_y / 7), win_x / 13, win_y / 10))
+    pygame.draw.rect(win, inv_color3, (win_x - (win_x / 5.5), win_y - (win_y / 7), win_x / 13, win_y / 10), 5)
+    pygame.draw.rect(win, inv_color4, (win_x - (win_x / 10), win_y - (win_y / 7), win_x / 13, win_y / 10), 5)
 
     # Draws stamina bar.
     pygame.draw.rect(win, (0, 0, 0), (win_x / 30, win_y / 40, win_x / 3, win_y / 15))
-    pygame.draw.rect(win, (0, 255, 0), (win_x / 25, win_y / 35, (win_x / 2.95) * (stamina / 100), win_y / 13))
+    pygame.draw.rect(win, (0, 255, 0), (win_x / 25, win_y / 35, (win_x / 3.14) * (stamina / 100), win_y / 16.5))
 
     pygame.display.flip()
 
