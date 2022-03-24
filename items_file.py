@@ -42,8 +42,4 @@ class Item :
     def render(self,surface):
         pygame.draw.circle(surface,self.color,(self.mas_x,self.mas_y),15)
 
-    
-    def item_pickup(self, pos_x, pos_y, player_x, player_y):
-        player_pos = player_x, player_y
-        item_pos = pos_x, pos_y
         
