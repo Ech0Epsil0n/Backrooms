@@ -26,9 +26,7 @@ inv_color1 = (101, 67, 33)
 inv_color2 = (101, 67, 33)
 inv_color3 = (0, 0, 0)
 inv_color4 = (0, 0, 0)
-font = pygame.font.SysFont("ComicSans", 10)
-
-
+font = pygame.font.SysFont("ComicSans", 14)
 
 # Loads assets.
 map_test = pygame.image.load("Backrooms assets//Map_layout.png")
@@ -44,7 +42,9 @@ inventory = []
 
 # Test code.
 test_hammer = Item(0, (1526 - player_x, 645 - player_y), "Hammer", (0, 255, 0))
+inv_item1 = font.render("Hammer", True, (255, 255, 255))
 test_bozo = Item(0, (300 - player_x, 300 - player_y), "Bozo", (255, 255, 0))
+inv_item2 = font.render("Bozo", True, (255, 255, 255))
 items.append(test_hammer)
 items.append(test_bozo)
 
@@ -101,12 +101,6 @@ while running :
                         items.remove(item)
                         inventory.append(item)
 
-                        if len(inventory) == 1 :
-                            inv_color1 = (0, 255, 0)
-
-                        else :
-                            inv_color2 = (0, 255, 0)
-
         ## KEYBOARD ONE-UP INPUT ##
         if event.type == pygame.KEYUP :
             # Resets move speed.
@@ -151,6 +145,12 @@ while running :
     pygame.draw.rect(win, inv_color2, (win_x - (win_x / 10), win_y - (win_y / 7), win_x / 13, win_y / 10))
     pygame.draw.rect(win, inv_color3, (win_x - (win_x / 5.5), win_y - (win_y / 7), win_x / 13, win_y / 10), 5)
     pygame.draw.rect(win, inv_color4, (win_x - (win_x / 10), win_y - (win_y / 7), win_x / 13, win_y / 10), 5)
+    if len(inventory) == 1 :
+        win.blit(inv_item1, (win_x - (win_x / 5.6), win_y - (win_y / 10)))
+
+    elif len(inventory) == 2:
+        win.blit(inv_item1, (win_x - (win_x / 5.6), win_y - (win_y / 10)))
+        win.blit(inv_item2, (win_x - (win_x / 10.4), win_y - (win_y / 10)))
 
     # Draws stamina bar.
     pygame.draw.rect(win, (0, 0, 0), (win_x / 30, win_y / 40, win_x / 3, win_y / 15))
