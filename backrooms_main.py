@@ -4,7 +4,8 @@
 
 ## IMPORTS AND INITIALIZATIONS ##
 import pygame
-from items_file import Item
+import classes
+import time
 
 # Pygame standard initialization.
 pygame.init()
@@ -19,6 +20,7 @@ running = True
 move_speed = 100
 player_x, player_y = 800, 1150
 player_size = 20
+stunned = 0
 camera_x, camera_y = 0, 0
 sprinting_bool = False
 stamina = 100
@@ -43,13 +45,15 @@ map_surf.blit(map_test, (0, 0))
 map_surf = pygame.transform.scale(map_surf, (win_x * 2, win_y * 2))
 
 # Generates items (temporary: will be relocated to map_generator script)
-items = []
+entities = []
 inventory = []
 
 # Test code for items.
-items.append(Item(0, (1526, 645), "Hammer", (0, 255, 0)))
-items.append(Item(0, (300, 300), "Bozo", (255, 255, 0)))
-items.append(Item(0, (600, 600), "Taser", (0, 0, 255)))
+entities.append(classes.StaticEntity(0, (1526, 645), "Hammer", (0, 255, 0)))
+entities.append(classes.StaticEntity(1, (300, 300), "Bozo", (255, 255, 0)))
+entities.append(classes.StaticEntity(2, (600, 600), "Taser", (0, 0, 255)))
+
+entities.append(classes.StaticEntity(10, (700, 700), "Bear Claw", (255, 0, 0)))
 
 ## MAIN GAMEPLAY LOOP ##
 while running :
@@ -58,7 +62,23 @@ while running :
 
     ## UPDATE ##
     player_rect = pygame.Rect((player_x - camera_x) + 20, (player_y - camera_y) + 15, 23, 44)
+
     stamina_recharge -= 1 * delta_time
+    stunned -= 1 * delta_time
+
+    # Checks for static entity collision and acts accordingly.
+    for entity in entities:
+        entity.entity_surf, entity.entity_x, entity.entity_y = entity.update(camera_x, camera_y, player_rect)
+
+        if player_rect.colliderect(entity.collide_rect) :
+            entities.remove(entity)
+
+            if len(inventory) < 2 and entity.class_type < 10 :
+                inventory.append((entity, item_font.render(entity.name, True, (255, 255, 255))))
+
+            if entity.class_type >= 10 :
+                print(f"YOU'VE BEEN HIT BY {entity.name.upper()}!")
+                stunned = 3
 
     # Handles stamina generation, depletion, and elimination.
     if sprinting_bool == False :
@@ -101,13 +121,6 @@ while running :
             elif event.key == pygame.K_LCTRL :
                 move_speed = 25
 
-            # Item pickup command.
-            if event.key == pygame.K_e :
-                for item in items :
-                    if player_rect.colliderect(item.collide_rect) :
-                        items.remove(item)
-                        inventory.append((item, item_font.render(item.name, True, (255, 255, 255))))
-
         ## KEYBOARD ONE-UP INPUT ##
         if event.type == pygame.KEYUP :
             # Resets move speed.
@@ -119,6 +132,9 @@ while running :
     keys = pygame.key.get_pressed()
 
     # Basic WASD movement.
+    pre_player_x = player_x
+    pre_player_y = player_y
+
     if keys[pygame.K_w] :
         player_y -= move_speed * delta_time
         sam_y = 0
@@ -135,21 +151,25 @@ while running :
         player_x -= move_speed * delta_time
         sam_y = 192
 
+    if stunned > 0 :
+        player_x = pre_player_x
+        player_y = pre_player_y
+
     # Updates camera positional values.
     camera_x, camera_y = player_x - (win_x / 2), player_y - (win_y / 2)
 
     # Player bounding.
-    if player_x > (map_surf.get_width()) - (player_size / 2) :
-        player_x = (map_surf.get_width()) - (player_size / 2)
+    if player_x > (map_surf.get_width()) - 43 :
+        player_x = (map_surf.get_width()) - 43
 
-    if player_x < 0 + (player_size / 2):
-        player_x = 0 + (player_size / 2)
+    if player_x < -23 :
+        player_x = -23
 
-    if player_y > (map_surf.get_height()) - (player_size / 2) :
-        player_y = (map_surf.get_height()) - (player_size / 2)
+    if player_y > (map_surf.get_height()) - 59 :
+        player_y = (map_surf.get_height()) - 59
 
-    if player_y < 0 + (player_size / 2):
-        player_y = 0 + (player_size / 2)
+    if player_y < -14 :
+        player_y = -14
 
     # Camera bounding.
     if camera_x > map_surf.get_width() - ((win_x / 2) * 2) :
@@ -177,9 +197,8 @@ while running :
     pygame.draw.rect(win, (255, 0, 0), player_rect, 1)
 
     # Draws items.
-    for item in items :
-        item_surf, item_x, item_y = item.update(camera_x, camera_y, player_rect)
-        win.blit(item_surf, (item_x, item_y))
+    for entity in entities :
+        win.blit(entity.entity_surf, (entity.entity_x, entity.entity_y))
 
     ## UI RENDERING ##
 

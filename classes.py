@@ -7,9 +7,9 @@ import pygame
 
 pygame.init()
 
-class Item :
-    """A basic item that can be picked up, equipped, and used by the player. The index (later, class_type) value is
-    used by the map generator script to tell which type of item this instance of the class is."""
+class StaticEntity :
+    """A non-moving entity (trap, item, or other static object.) It's type is dictated by map generator-defined index
+    value."""
     
     def __init__ (self, index, pos, name, color) :
         # Sets index to class type.
@@ -20,21 +20,25 @@ class Item :
         self.mas_x, self.mas_y = pos[0], pos[1]
         self.color = color
 
+        # Creates draw values. Manipulated by main script.
+        self.entity_surf = None
+        self.entity_x = None
+        self.entity_y = None
+
     def __str__(self):
         return self.name
 
     def update (self, player_x, player_y, player_rect) :
         """Updates positional values, creates work surface, returns to caller. Ideally, should only be ran when
-        Item would technically be in view."""
+        StaticEntity would technically be in view."""
 
         # Updates positional value.
         pos_x = self.mas_x - player_x
         pos_y = self.mas_y - player_y
 
         # Creates work surface and returns to caller.
-        if self.class_type == 0 :
-            work_surface = pygame.Surface((30, 30))
-            pygame.draw.rect(work_surface, self.color, (0, 0, 30, 30))
+        work_surface = pygame.Surface((30, 30))
+        pygame.draw.rect(work_surface, self.color, (0, 0, 30, 30))
 
         # Collision detection.
         self.collide_rect = pygame.Rect(pos_x, pos_y, 30, 30)
