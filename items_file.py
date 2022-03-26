@@ -34,7 +34,7 @@ class Item :
         # Creates work surface and returns to caller.
         if self.class_type == 0 :
             work_surface = pygame.Surface((30, 30))
-            pygame.draw.rect(work_surface, (255, 255, 0), (0, 0, 30, 30))
+            pygame.draw.rect(work_surface, self.color, (0, 0, 30, 30))
 
         # Collision detection.
         self.collide_rect = pygame.Rect(pos_x, pos_y, 30, 30)
