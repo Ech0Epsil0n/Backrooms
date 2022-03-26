@@ -11,22 +11,28 @@ class StaticEntity :
     """A non-moving entity (trap, item, or other static object.) It's type is dictated by map generator-defined index
     value."""
     
-    def __init__ (self, index, pos, name, color) :
+    def __init__ (self, pos, index, name) :
         # Sets index to class type.
-        self.class_type = index
+        self.class_type = int(index)
         self.name = name
 
-        # Places position values.
+        # Loads positional data.
         self.mas_x, self.mas_y = pos[0], pos[1]
-        self.color = color
+
+        # Sets color based on type.
+        if self.class_type < 10 :
+            self.color = (0, 255, 0)
+
+        elif self.class_type > 10 and self.class_type < 20 :
+            self.color = (255, 0, 0)
+
+        else :
+            self.color = (102, 51, 153)
 
         # Creates draw values. Manipulated by main script.
         self.entity_surf = None
         self.entity_x = None
         self.entity_y = None
-
-    def __str__(self):
-        return self.name
 
     def update (self, player_x, player_y, player_rect) :
         """Updates positional values, creates work surface, returns to caller. Ideally, should only be ran when

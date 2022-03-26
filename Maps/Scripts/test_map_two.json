@@ -1,0 +1,42 @@
+{ "compressionlevel":-1,
+ "height":5,
+ "infinite":false,
+ "layers":[
+        {
+         "data":[5, 5, 0, 0, 0, 2, 2, 0, 3, 4, 0, 0, 0, 3, 4, 7, 8, 0, 3, 4, 0, 0, 0, 3, 4],
+         "height":5,
+         "id":1,
+         "name":"Tile Layer 1",
+         "opacity":1,
+         "type":"tilelayer",
+         "visible":true,
+         "width":5,
+         "x":0,
+         "y":0
+        }],
+ "nextlayerid":2,
+ "nextobjectid":1,
+ "orientation":"orthogonal",
+ "renderorder":"right-down",
+ "tiledversion":"1.7.2",
+ "tileheight":64,
+ "tilesets":[
+        {
+         "columns":1,
+         "firstgid":1,
+         "image":"wall_sprites.png",
+         "imageheight":576,
+         "imagewidth":64,
+         "margin":0,
+         "name":"wall_sprites",
+         "spacing":0,
+         "tilecount":9,
+         "tileheight":64,
+         "tilewidth":64,
+         "transparentcolor":"#ff00ff"
+        }],
+ "tilewidth":64,
+ "type":"map",
+ "version":"1.6",
+ "width":5
+}

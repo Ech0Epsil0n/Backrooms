@@ -8,6 +8,8 @@ import classes
 import time
 
 # Pygame standard initialization.
+import map_reader
+
 pygame.init()
 win_x, win_y = 800, 600
 win = pygame.display.set_mode((win_x, win_y))
@@ -18,8 +20,6 @@ running = True
 
 # Establishes baseline variables.
 move_speed = 100
-player_x, player_y = 800, 1150
-player_size = 20
 stunned = 0
 camera_x, camera_y = 0, 0
 sprinting_bool = False
@@ -39,21 +39,18 @@ sam = pygame.image.load("Assets//sliding_sam.png")
 # Image integers for iterating through spritesheets.
 sam_y = 0
 
-# Creates map surface to blit/transform.
-map_surf = pygame.Surface((int(map_test.get_width()), int(map_test.get_height())))
-map_surf.blit(map_test, (0, 0))
-map_surf = pygame.transform.scale(map_surf, (win_x * 2, win_y * 2))
-
-# Generates items (temporary: will be relocated to map_generator script)
+# Loads items and inventory lists.
 entities = []
 inventory = []
 
-# Test code for items.
-entities.append(classes.StaticEntity(0, (1526, 645), "Hammer", (0, 255, 0)))
-entities.append(classes.StaticEntity(1, (300, 300), "Bozo", (255, 255, 0)))
-entities.append(classes.StaticEntity(2, (600, 600), "Taser", (0, 0, 255)))
+# Renders current map and creates static entity list.
+map_surf, objects, tiles = map_reader.load_map(0)
+start_pos = [(576, 1000), (128, 128)]
 
-entities.append(classes.StaticEntity(10, (700, 700), "Bear Claw", (255, 0, 0)))
+player_x, player_y = start_pos[0][0], start_pos[0][1]
+
+for object in objects :
+    entities.append(classes.StaticEntity((object[0], object[1]), object[2], object[3]))
 
 ## MAIN GAMEPLAY LOOP ##
 while running :
@@ -65,20 +62,6 @@ while running :
 
     stamina_recharge -= 1 * delta_time
     stunned -= 1 * delta_time
-
-    # Checks for static entity collision and acts accordingly.
-    for entity in entities:
-        entity.entity_surf, entity.entity_x, entity.entity_y = entity.update(camera_x, camera_y, player_rect)
-
-        if player_rect.colliderect(entity.collide_rect) :
-            entities.remove(entity)
-
-            if len(inventory) < 2 and entity.class_type < 10 :
-                inventory.append((entity, item_font.render(entity.name, True, (255, 255, 255))))
-
-            if entity.class_type >= 10 :
-                print(f"YOU'VE BEEN HIT BY {entity.name.upper()}!")
-                stunned = 3
 
     # Handles stamina generation, depletion, and elimination.
     if sprinting_bool == False :
@@ -184,8 +167,47 @@ while running :
     if camera_y < 0 :
         camera_y = 0
 
+    ## COLLISION ##
+
+    # Checks for static entity collision and acts accordingly.
+    for entity in entities:
+        entity.entity_surf, entity.entity_x, entity.entity_y = entity.update(camera_x, camera_y, player_rect)
+
+        if player_rect.colliderect(entity.collide_rect) :
+            if len(inventory) < 2 and entity.class_type < 10 :
+                entities.remove(entity)
+                inventory.append((entity, item_font.render(entity.name, True, (255, 255, 255))))
+
+            if entity.class_type >= 10 and entity.class_type < 20 :
+                print(f"YOU'VE BEEN HIT BY A {entity.name.upper()}!")
+                entities.remove(entity)
+                stunned = 3
+
+            if entity.class_type == 20 :
+                print("YOU'RE WINNER!")
+                entities.remove(entity)
+
+    # Checks for wall collisions to all walls within a reasonable range.
+    for tile in tiles :
+        dist_x = tile.pos[0] - player_x
+        dist_y = tile.pos[1] - player_y
+
+        # Sets distance to absolute value.
+        if dist_x < 0 :
+            dist_x = -dist_x
+
+        if dist_y < 0 :
+            dist_y = -dist_y
+
+        if dist_x < 30 and dist_y < 30 :
+            collision_bool, new_player_pos = tile.check((player_x, player_y), (camera_x, camera_y), win)
+
+            if collision_bool == True :
+                player_x = new_player_pos[0]
+                player_y = new_player_pos[1]
+
     ## RENDERING ##
-    win.fill((0, 0, 0))
+    win.fill((255, 255, 255))
 
     # Blits map.
     win.blit(map_surf, (0, 0), (camera_x, camera_y, win_x, win_y))
