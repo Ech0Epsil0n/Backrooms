@@ -16,6 +16,16 @@ class StaticEntity :
         self.class_type = int(index)
         self.name = name
 
+        # Loads entity image.
+        if self.class_type == 10 :
+            self.image = pygame.image.load("Assets/trap.png")
+
+        elif self.class_type == 20 :
+            self.image = pygame.image.load("Assets/BigKey.png")
+
+        else :
+            self.image = pygame.image.load("Assets/SmallKey.png")
+
         # Loads positional data.
         self.mas_x, self.mas_y = pos[0], pos[1]
 
@@ -43,10 +53,10 @@ class StaticEntity :
         pos_y = self.mas_y - player_y
 
         # Creates work surface and returns to caller.
-        work_surface = pygame.Surface((30, 30))
-        pygame.draw.rect(work_surface, self.color, (0, 0, 30, 30))
+        work_surface = pygame.Surface((24, 24))
+        work_surface.blit(self.image, (-20, -20))
 
         # Collision detection.
-        self.collide_rect = pygame.Rect(pos_x, pos_y, 30, 30)
+        self.collide_rect = pygame.Rect(pos_x, pos_y, 64, 64)
 
         return work_surface, pos_x, pos_y

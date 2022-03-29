@@ -11,8 +11,8 @@ def load_map(index) :
 
     # Would put all available map json files into a list, and then choose which one to load through index.
     maps = []
-    maps.append(open("Maps//Scripts//test_map_one.json"))
-    maps.append(open("Maps//Scripts//test_map_two.json"))
+    maps.append(open("Maps//test_map_one.json"))
+    maps.append(open("Maps//test_map_two.json"))
 
     map_data = json.load(maps[index])
 
@@ -21,7 +21,7 @@ def load_map(index) :
         """Contains tileset gid and image data so that reader can parse information accurately."""
 
         def __init__(self, gid, image_path) :
-            img_str = "Maps\\Scripts\\" + image_path
+            img_str = "Maps\\" + image_path
 
             self.gid = gid
             self.image = pygame.image.load(img_str)
@@ -33,11 +33,18 @@ def load_map(index) :
         def __init__ (self, index, pos) :
             self.type = index
             self.pos = pos
+            self.col_pos = pos
+            if(self.type == 3) :
+                self.col_pos = (self.pos[0] + 64, self.pos[1])
+
             self.side_list = [[False, False, False, False], [True, False, False, False], [False, False, True, False],
                               [False, False, False, True], [False, True, False, False], [True, False, True, False],
                               [False, True, True, False], [False, True, False, True], [True, False, False, True]]
 
         def check (self, player_pos, camera_pos, win) :
+            pygame.draw.rect(win, (255, 0, 0), (self.pos[0] - camera_pos[0], self.pos[1] - camera_pos[1], 64, 64), 1)
+            pygame.draw.circle(win, (0, 0, 255), (self.col_pos[0] - camera_pos[0], self.col_pos[1] - camera_pos[1]), 10, 1)
+
             # Collision check startup.
             side_list = self.side_list[self.type - 1]
 
@@ -50,22 +57,22 @@ def load_map(index) :
             collision_bool = False
 
             if up == True :
-                if player_pos[1] + 12 < self.pos[1]:
+                if player_pos[1] + 12 < self.col_pos[1]:
                     collision_bool == True
                     return_y += 1
 
             if down == True :
-                if player_pos[1] - 5 > self.pos[1]:
+                if player_pos[1] - 5 > self.col_pos[1]:
                     collision_bool == True
                     return_y -= 1
 
             if right == True :
-                if player_pos[0] - 18 > self.pos[0]:
+                if player_pos[0] - 18 > self.col_pos[0]:
                     collision_bool == True
                     return_x -= 1
 
             if left == True :
-                if player_pos[0] + 18 < self.pos[0]:
+                if player_pos[0] + 18 < self.col_pos[0]:
                     collision_bool == True
                     return_x += 1
 
