@@ -17,10 +17,10 @@ class StaticEntity :
         self.name = name
 
         # Loads entity image.
-        if self.class_type == 10 :
+        if self.class_type >= 10 and self.class_type < 20 :
             self.image = pygame.image.load("Assets/trap.png")
 
-        elif self.class_type == 20 :
+        elif self.class_type >= 20 :
             self.image = pygame.image.load("Assets/BigKey.png")
 
         else :
