@@ -15,6 +15,7 @@ pygame.init()
 win_x, win_y = 800, 600
 win = pygame.display.set_mode((win_x, win_y))
 pygame.display.set_caption("Into the Backrooms")
+clock = pygame.time.Clock
 clock = pygame.time.Clock()
 running = True
 
@@ -23,7 +24,6 @@ move_speed = 100
 stunned = 0
 camera_x, camera_y = 0, 0
 sprinting_bool = False
-end_game = False
 stamina = 100
 stamina_recharge = 0
 stamina_color = (0, 255, 0)
@@ -32,7 +32,6 @@ inv_color2 = (101, 67, 33)
 
 # Creates fonts and renders static text.
 item_font = pygame.font.SysFont("Times New Roman", 18)
-big_font = pygame.font.SysFont("Times New Roman", 48)
 
 # Loads assets.
 map_test = pygame.image.load("Assets//Map_layout.png")
@@ -53,11 +52,6 @@ player_x, player_y = start_pos[0][0], start_pos[0][1]
 
 for object in objects :
     entities.append(classes.StaticEntity((object[0], object[1]), object[2], object[3]))
-
-# Prepares game end screen.
-end_game_surf = pygame.Surface((win_x, win_y))
-victory_text = big_font.render("VICTORY!", True, (255, 255, 255))
-quit_text = big_font.render("QUIT?", True, (0, 255, 0))
 
 ## MAIN GAMEPLAY LOOP ##
 while running :
@@ -112,22 +106,12 @@ while running :
             elif event.key == pygame.K_LCTRL :
                 move_speed = 25
 
-            elif event.key == pygame.K_F1 :
-                end_game = True
-
         ## KEYBOARD ONE-UP INPUT ##
         if event.type == pygame.KEYUP :
             # Resets move speed.
             if event.key == pygame.K_LSHIFT or pygame.key == pygame.K_LCTRL :
                 move_speed = 100
                 sprinting_bool = False
-
-        ## MOUSE ONE-PRESS INPUT ##
-        if event.type == pygame.MOUSEBUTTONDOWN :
-            if end_game == True :
-                mouse_pos = pygame.mouse.get_pos()
-                if quit_button.collidepoint(mouse_pos[0], mouse_pos[1]) :
-                    running = False
 
     ## CONTINUOUS KEYBOARD INPUT ##
     keys = pygame.key.get_pressed()
@@ -202,8 +186,7 @@ while running :
                 stunned = 3
 
             if entity.class_type == 20 :
-                end_game = True
-                print("Hit DOOR")
+                print("YOU'RE WINNER!")
                 entities.remove(entity)
 
     # Checks for wall collisions to all walls within a reasonable range.
@@ -257,13 +240,6 @@ while running :
     # Draws stamina bar.
     pygame.draw.rect(win, (0, 0, 0), (win_x / 30, win_y / 40, win_x / 3, win_y / 15))
     pygame.draw.rect(win, stamina_color, (win_x / 25, win_y / 35, (win_x / 3.14) * (stamina / 100), win_y / 16.5))
-
-    # Draws end game screen.
-    if end_game == True :
-        end_game_surf.blit(victory_text, (win_x / 3, win_y / 20))
-        end_game_surf.blit(quit_text, (win_x / 3 + (win_x / 12), win_y / 3 + (win_x / 12)))
-        quit_button = pygame.draw.rect(end_game_surf, (255, 0, 0), (win_x / 3, win_y / 3, win_x / 3, win_y / 3), 10)
-        win.blit(end_game_surf, (0, 0))
 
     pygame.display.flip()
 
