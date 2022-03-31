@@ -44,6 +44,14 @@ class StaticEntity :
         self.entity_x = None
         self.entity_y = None
 
+    def use (self) :
+        if self.class_type == 0 :
+            print("Badoonga")
+
+        if self.class_type == 1 :
+            print("TZZZZZ")
+
+
     def update (self, player_x, player_y) :
         """Updates positional values, creates work surface, returns to caller. Ideally, should only be ran when
         StaticEntity would technically be in view."""

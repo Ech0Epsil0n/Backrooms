@@ -27,8 +27,14 @@ sprinting_bool = False
 stamina = 100
 stamina_recharge = 0
 stamina_color = (0, 255, 0)
-inv_color1 = (101, 67, 33)
-inv_color2 = (101, 67, 33)
+
+brown = (101, 67, 33)
+grey = (120, 120, 120)
+green = (1, 50, 32)
+
+inv_color1 = brown
+inv_color2 = brown
+inventory_int = None
 
 # Creates fonts and renders static text.
 item_font = pygame.font.SysFont("Times New Roman", 18)
@@ -106,12 +112,72 @@ while running :
             elif event.key == pygame.K_LCTRL :
                 move_speed = 25
 
+            # Inventory selection mechanism.
+            if event.key == pygame.K_1 or event.key == pygame.K_2 :
+                inv_color1 = brown
+                inv_color2 = brown
+
+                if event.key == pygame.K_1 :
+                    inv_color1 = grey
+
+                elif event.key == pygame.K_2 :
+                    inv_color2 = grey
+
+            # Inventory use mechanism.
+            if event.key == pygame.K_e and inventory_int is not None :
+                try :
+                    inventory[inventory_int]
+                    temp_bool = True
+
+                except IndexError :
+                    temp_bool = False
+
+                if temp_bool == True :
+                    inventory[inventory_int][0].use()
+                    inventory.pop(inventory_int)
+
+                inventory_int = None
+                inv_color1 = brown
+                inv_color2 = brown
+
+            # Inventory drop mechanism.
+            if event.key == pygame.K_g :
+                try :
+                    inventory[inventory_int]
+                    temp_bool = True
+
+                except IndexError :
+                    temp_bool = False
+
+                if temp_bool == True :
+                    entities.append(classes.StaticEntity((player_x - 20, player_y + 32),
+                                    inventory[inventory_int][0].class_type, inventory[inventory_int][0].name))
+
+                    inventory.pop(inventory_int)
+
+                inventory_int = None
+                inv_color1 = brown
+                inv_color2 = brown
+
         ## KEYBOARD ONE-UP INPUT ##
         if event.type == pygame.KEYUP :
             # Resets move speed.
             if event.key == pygame.K_LSHIFT or pygame.key == pygame.K_LCTRL :
                 move_speed = 100
                 sprinting_bool = False
+
+            # Continued inventory selection mechanism.
+            if event.key == pygame.K_1 or event.key == pygame.K_2 :
+                inv_color1 = brown
+                inv_color2 = brown
+
+                if event.key == pygame.K_1 :
+                    inv_color1 = green
+                    inventory_int = 0
+
+                elif event.key == pygame.K_2 :
+                    inv_color2 = green
+                    inventory_int = 1
 
     ## CONTINUOUS KEYBOARD INPUT ##
     keys = pygame.key.get_pressed()
@@ -172,7 +238,7 @@ while running :
     ## COLLISION ##
 
     # Checks for static entity collision and acts accordingly.
-    for entity in entities:
+    for entity in entities :
         entity.entity_surf, entity.entity_x, entity.entity_y = entity.update(camera_x, camera_y)
 
         if player_rect.colliderect(entity.collide_rect) :
@@ -228,17 +294,15 @@ while running :
     pygame.draw.rect(win, inv_color2, (win_x - (win_x / 10), win_y - (win_y / 7), win_x / 13, win_y / 10))
 
 
-    if len(inventory) == 1 :
+    if len(inventory) >= 1 :
         win.blit(inventory[0][1], ((win_x - (win_x / 5.6)) + ((win_x / 13) / 10),
                                    win_y - ((win_y / 10) + ((win_y / 10) / 8))))
 
-    elif len(inventory) == 2:
-        win.blit(inventory[0][1], ((win_x - (win_x / 5.6)) + ((win_x / 13) / 10),
-                                   win_y - ((win_y / 10) + ((win_y / 10) / 8))))
-        win.blit(inventory[1][1], ((win_x - (win_x / 10)) + ((win_x / 13) / 10),
-                                   win_y - ((win_y / 10) + ((win_y / 10) / 8))))
+        if len(inventory) == 2:
+            win.blit(inventory[1][1], ((win_x - (win_x / 10)) + ((win_x / 13) / 10),
+                                       win_y - ((win_y / 10) + ((win_y / 10) / 8))))
     # Draws stamina bar.
-    pygame.draw.rect(win, (0, 0, 0), (win_x / 30, win_y / 40, win_x / 3, win_y / 15))
+    pygame.draw.rect(win, (255, 255, 255), (win_x / 30, win_y / 40, win_x / 3, win_y / 15))
     pygame.draw.rect(win, stamina_color, (win_x / 25, win_y / 35, (win_x / 3.14) * (stamina / 100), win_y / 16.5))
 
     pygame.display.flip()
