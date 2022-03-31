@@ -6,6 +6,7 @@
 import pygame
 import classes
 import time
+import vector
 
 # Pygame standard initialization.
 import map_reader
@@ -65,6 +66,7 @@ while running :
 
     ## UPDATE ##
     player_rect = pygame.Rect((player_x - camera_x) + 20, (player_y - camera_y) + 15, 23, 44)
+    pcol_x, pcol_y = player_x + 32, player_y + 32
 
     stamina_recharge -= 1 * delta_time
     stunned -= 1 * delta_time
@@ -187,7 +189,7 @@ while running :
 
     # Checks for static entity collision and acts accordingly.
     for entity in entities:
-        entity.entity_surf, entity.entity_x, entity.entity_y = entity.update(camera_x, camera_y, player_rect)
+        entity.entity_surf, entity.entity_x, entity.entity_y = entity.update(camera_x, camera_y)
 
         if player_rect.colliderect(entity.collide_rect) :
             if len(inventory) < 2 and entity.class_type < 10 :
@@ -204,6 +206,17 @@ while running :
                 print("Hit DOOR")
                 entities.remove(entity)
 
+    # Checks for wall collisions to all walls within a reasonable range.
+    for tile in tiles :
+        dist_vec = vector.Vector(tile.col_pos[0] - pcol_x, tile.col_pos[1] - pcol_y).mag()
+
+        # Will check for collision if tile is close enough.
+        if dist_vec < 40 :
+            col_bool, col_pos = tile.check((pcol_x, pcol_y))
+
+            if col_bool == True :
+                player_x, player_y = col_pos[0], col_pos[1]
+
     ## RENDERING ##
     win.fill((255, 255, 255))
 
@@ -215,29 +228,6 @@ while running :
 
     # Draws player hitbox.
     pygame.draw.rect(win, (255, 0, 0), player_rect, 1)
-
-    # Checks for wall collisions to all walls within a reasonable range.
-    for tile in tiles :
-        dist_x = tile.pos[0] - (player_x + 20)
-        dist_y = tile.pos[1] - (player_y + 20)
-        pygame.draw.circle(win, (0, 255, 0), ((player_x + 20) - camera_x, (player_y + 20) - camera_y), 10, 1)
-
-        # Sets distance to absolute value.
-        if dist_x < 0 :
-            dist_x = -dist_x
-
-        if dist_y < 0 :
-            dist_y = -dist_y
-
-        if dist_x < 30 and dist_y < 30 :
-            pygame.draw.line(win, (0, 255, 0), ((player_x + 20) - camera_x, (player_y + 20) - camera_y),
-                             (tile.col_pos[0] - camera_x, tile.col_pos[1] - camera_y))
-
-            collision_bool, new_player_pos = tile.check((player_x, player_y), (camera_x, camera_y), win)
-
-            if collision_bool == True :
-                player_x = new_player_pos[0]
-                player_y = new_player_pos[1]
 
     # Draws items.
     for entity in entities :
