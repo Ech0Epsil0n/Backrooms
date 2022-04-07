@@ -14,7 +14,6 @@ pygame.init()
 win_x, win_y = 800, 600
 win = pygame.display.set_mode((win_x, win_y))
 pygame.display.set_caption("Into the Backrooms")
-clock = pygame.time.Clock
 clock = pygame.time.Clock()
 running = True
 
@@ -184,7 +183,7 @@ while running :
                 stunned = 3
 
             if entity.class_type == 20 :
-                print("YOU'RE WINNER!")
+                print("YOU'RE A WINNER!")
                 entities.remove(entity)
 
     # Checks for wall collisions to all walls within a reasonable range.
