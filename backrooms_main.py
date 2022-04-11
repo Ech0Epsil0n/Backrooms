@@ -39,7 +39,6 @@ inventory_int = None
 item_font = pygame.font.SysFont("Times New Roman", 18)
 
 # Loads assets.
-map_test = pygame.image.load("Assets//Map_layout.png")
 sam = pygame.image.load("Assets//sliding_sam.png")
 
 # Image integers for iterating through spritesheets.
@@ -50,7 +49,7 @@ entities = []
 inventory = []
 
 # Renders current map and creates static entity list.
-map_surf, objects, tiles = map_reader.load_map(0)
+map_surf, objects, walls = map_reader.load_map(2)
 start_pos = [(576, 1000), (128, 128)]
 
 player_x, player_y = start_pos[0][0], start_pos[0][1]
@@ -254,16 +253,27 @@ while running :
                 print("YOU'RE A WINNER!")
                 entities.remove(entity)
 
-    # Checks for wall collisions to all walls within a reasonable range.
-    for tile in tiles :
-        dist_vec = vector.Vector(tile.col_pos[0] - pcol_x, tile.col_pos[1] - pcol_y).mag()
+    # Checks for wall collisions to all walls.
+    for wall in walls :
+        # Left collision.
+        if pcol_x > wall[0] - 10 and pcol_x < wall[0] + 32 :
+            if pcol_y > wall[1] and pcol_y < wall[1] + 64 :
+                player_x = player_x - 1
 
-        # Will check for collision if tile is close enough.
-        if dist_vec < 40 :
-            col_bool, col_pos = tile.check((pcol_x, pcol_y))
+        # Right collision.
+        if pcol_x < wall[0] + 76 and pcol_x > wall[0] + 64 :
+            if pcol_y > wall[1] and pcol_y < wall[1] + 64 :
+                player_x = player_x + 1
 
-            if col_bool == True :
-                player_x, player_y = col_pos[0], col_pos[1]
+        # Up collision.
+        if pcol_x > wall[0] and pcol_x < wall[0] + 64 :
+            if pcol_y > wall[1] - 26 and pcol_y < wall[1] + 64 :
+                player_y = player_y - 1
+
+        # Down collision.
+        if pcol_x > wall[0] and pcol_x < wall[0] + 64 :
+            if pcol_y > wall[1] and pcol_y < wall[1] + 81 :
+                player_y = player_y + 1
 
     ## RENDERING ##
     win.fill((255, 255, 255))
@@ -273,6 +283,7 @@ while running :
 
     # Draws player.
     win.blit(sam, (player_x - camera_x, player_y - camera_y, 64, 64), (0, sam_y, 64, 64))
+    pygame.draw.circle(win, (0, 255, 0), (pcol_x - camera_x, pcol_y - camera_y), 10)
 
     # Draws player hitbox.
     pygame.draw.rect(win, (255, 0, 0), player_rect, 1)

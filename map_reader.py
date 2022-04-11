@@ -13,6 +13,7 @@ def load_map(index) :
     maps = []
     maps.append(open("Maps//test_map_one.json"))
     maps.append(open("Maps//test_map_two.json"))
+    maps.append(open("Maps//test_map_three.json"))
 
     map_data = json.load(maps[index])
 
@@ -25,53 +26,6 @@ def load_map(index) :
 
             self.gid = gid
             self.image = pygame.image.load(img_str)
-
-    class Tile :
-        """A simple tile class that contains collision instructions for walls. The type of wall is dictated by
-        user-input index value."""
-
-        def __init__ (self, index, pos) :
-            self.type = index
-            self.pos = pos
-            self.col_pos = (pos[0] + 32, pos[1] + 32)
-
-            self.side_list = [[False, False, False, False], [True, False, False, False], [False, False, True, False],
-                              [False, False, False, True], [False, True, False, False], [True, False, True, False],
-                              [False, True, True, False], [False, True, False, True], [True, False, False, True]]
-
-        def check (self, player_pos) :
-            # Collision check startup.
-            side_list = self.side_list[self.type - 1]
-
-            up = side_list[0]
-            down = side_list[1]
-            right = side_list[2]
-            left = side_list[3]
-
-            return_x, return_y = player_pos[0] - 32, player_pos[1] - 32
-            collision_bool = False
-
-            if up == True :
-                if player_pos[1] + 10 < self.col_pos[1] :
-                    collision_bool = True
-                    return_y += 1
-
-            if down == True :
-                if player_pos[1] > self.col_pos[1] :
-                    collision_bool = True
-                    return_y -= 1
-
-            if right == True :
-                if player_pos[0] - 16 > self.col_pos[0] :
-                    collision_bool = True
-                    return_x -= 1
-
-            if left == True :
-                if player_pos[0] + 18 < self.col_pos[0] :
-                    collision_bool = True
-                    return_x += 1
-
-            return collision_bool, (return_x, return_y)
 
     # Loads a list of tilesets from map_data.
     tilesets = []
@@ -87,7 +41,7 @@ def load_map(index) :
     # Creates data and object lists, and loads layers into their appropriate list.
     data_list = []
     object_list = []
-    tile_list = []
+    wall_list = []
     layers = map_data["layers"]
 
     for layer in layers :
@@ -116,22 +70,24 @@ def load_map(index) :
             data_list.append(temp_list)
 
     # Blits all information from data matrix.
-    for layer in data_list :
+    for dat_row in data_list :
         # Establishes baseline variables.
         x = 0
         y = 0
 
         # Blits a select row from entry in data_list.
-        for row in layer :
+        for row in dat_row :
             x = 0
 
             for value in row :
                 if value != 0 :
                     map_surf.blit(tilesets[0].image, (x, y), (0, (value * 64) - 64, 64, 64))
-                    tile_list.append(Tile(value, (x, y)))
+
+                    if layer["name"] == "walls" :
+                        wall_list.append((x, y))
 
                 x += 64
 
             y += 64
 
-    return map_surf, object_list, tile_list
+    return map_surf, object_list, wall_list
