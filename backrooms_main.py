@@ -7,6 +7,8 @@ import pygame
 import classes
 import time
 import vector
+from pygame.locals import*
+from pygame import mixer
 
 # Pygame standard initialization.
 import map_reader
@@ -26,6 +28,11 @@ sprinting_bool = False
 stamina = 100
 stamina_recharge = 0
 stamina_color = (0, 255, 0)
+
+# Background music
+mixer.init()
+mixer.music.load("Assets//background ambience.mp3")
+mixer.music.play(-1)
 
 brown = (101, 67, 33)
 grey = (120, 120, 120)
