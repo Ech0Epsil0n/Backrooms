@@ -4,16 +4,12 @@
 
 ## IMPORTS AND INITIALIZATIONS ##
 import pygame
+from pygame import mixer
+from pygame.locals import*
+
 import classes
-import time
-<<<<<<< Updated upstream
-import vector
 import pyglet
 from pyglet import shapes
-from pygame.locals import*
-from pygame import mixer
-=======
->>>>>>> Stashed changes
 
 # Pygame standard initialization.
 import map_reader
