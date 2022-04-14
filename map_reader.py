@@ -6,13 +6,29 @@
 import json
 import pygame
 
+## DEFINES CLASSES ##
+class Tile:
+    """Basic tile unit used for pathfinding."""
+
+    def __init__(self, x, y, grid_x, grid_y, valid=True) :
+        self.x = x
+        self.y = y
+
+        self.grid_x = grid_x
+        self.grid_y = grid_y
+
+        self.score = 0
+
+        self.valid = valid
+
+    def __str__(self):
+        return f"TILE AT ({self.grid_x}, {self.grid_y})"
+
 def load_map(index) :
     """Returns a rendered map surface to caller. Which map is rendered is dictated by user-input index value."""
 
     # Would put all available map json files into a list, and then choose which one to load through index.
     maps = []
-    maps.append(open("Maps//test_map_one.json"))
-    maps.append(open("Maps//test_map_two.json"))
     maps.append(open("Maps//test_map_three.json"))
 
     map_data = json.load(maps[index])
@@ -41,6 +57,7 @@ def load_map(index) :
     # Creates data and object lists, and loads layers into their appropriate list.
     data_list = []
     object_list = []
+    tile_list = []
     wall_list = []
     layers = map_data["layers"]
 
@@ -74,20 +91,35 @@ def load_map(index) :
         # Establishes baseline variables.
         x = 0
         y = 0
+        grid_y = 0
 
         # Blits a select row from entry in data_list.
         for row in dat_row :
             x = 0
+            grid_x = 0
+            tile_temp = []
 
             for value in row :
+                new_tile = Tile(x, y, grid_x, grid_y)
+
                 if value != 0 :
                     map_surf.blit(tilesets[0].image, (x, y), (0, (value * 64) - 64, 64, 64))
 
                     if layer["name"] == "walls" :
-                        wall_list.append((x, y))
+                        new_tile.valid = False
 
                 x += 64
+                grid_x += 1
+                tile_temp.append(new_tile)
 
             y += 64
+            grid_y += 1
+            tile_list.append(tile_temp)
 
-    return map_surf, object_list, wall_list
+    # Takes all walls and adds them to a list for easier player collision.
+    for row in tile_list :
+        for tile in row :
+            if tile.valid == False :
+                wall_list.append(tile)
+
+    return map_surf, object_list, tile_list, wall_list

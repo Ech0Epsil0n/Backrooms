@@ -6,11 +6,14 @@
 import pygame
 import classes
 import time
+<<<<<<< Updated upstream
 import vector
 import pyglet
 from pyglet import shapes
 from pygame.locals import*
 from pygame import mixer
+=======
+>>>>>>> Stashed changes
 
 # Pygame standard initialization.
 import map_reader
@@ -40,12 +43,20 @@ brown = (101, 67, 33)
 grey = (120, 120, 120)
 green = (1, 50, 32)
 
+targ_x, targ_y = 0, 0
+
 inv_color1 = brown
 inv_color2 = brown
 inventory_int = None
 
+map_loader = 0
+
+pathfinder = classes.pathfinder()
+move_list = []
+
 # Creates fonts and renders static text.
 item_font = pygame.font.SysFont("Times New Roman", 18)
+small_text = pygame.font.SysFont("Times New Roman", 12)
 
 # Loads assets.
 sam = pygame.image.load("Assets//sliding_sam.png")
@@ -58,10 +69,10 @@ entities = []
 inventory = []
 
 # Renders current map and creates static entity list.
-map_surf, objects, walls = map_reader.load_map(2)
-start_pos = [(576, 1000), (128, 128)]
+map_surf, objects, tiles, walls = map_reader.load_map(map_loader)
+start_pos = [(576, 900), (128, 128)]
 
-player_x, player_y = start_pos[0][0], start_pos[0][1]
+player_x, player_y = start_pos[map_loader][0], start_pos[map_loader][1]
 
 for object in objects :
     entities.append(classes.StaticEntity((object[0], object[1]), object[2], object[3]))
@@ -77,6 +88,17 @@ while running :
 
     stamina_recharge -= 1 * delta_time
     stunned -= 1 * delta_time
+
+    # Finds the player tile.
+    for row in tiles :
+        for tile in row :
+            tile_rect = pygame.Rect(tile.x, tile.y, 64, 64)
+
+            if tile_rect.collidepoint(pcol_x, pcol_y) :
+                player_tile = tile
+
+    # Finds the target tile. (DEBUG)
+    targ_tile = tiles[targ_y][targ_x]
 
     # Handles stamina generation, depletion, and elimination.
     if sprinting_bool == False :
@@ -165,6 +187,29 @@ while running :
                 inventory_int = None
                 inv_color1 = brown
                 inv_color2 = brown
+
+            # Target change. (DEBUG PURPOSES)
+            if event.key == pygame.K_RIGHT :
+                targ_x += 1
+
+            if event.key == pygame.K_LEFT :
+                targ_x -= 1
+
+            if event.key == pygame.K_DOWN :
+                targ_y += 1
+
+            if event.key == pygame.K_UP :
+                targ_y -= 1
+
+            if event.key == pygame.K_SPACE :
+                if targ_tile.valid == True :
+                    move_list = pathfinder.pather(player_tile, targ_tile, tiles)
+
+            if event.key == pygame.K_F1 :
+                print(f"PLAYER POS: ({player_tile.grid_x}, {player_tile.grid_y})")
+
+            if event.key == pygame.K_F2 :
+                print(f"PLAYER-TARGET DIST: {classes.pathfinder.calc_dest(pathfinder, player_tile, targ_tile)}")
 
         ## KEYBOARD ONE-UP INPUT ##
         if event.type == pygame.KEYUP :
@@ -265,23 +310,23 @@ while running :
     # Checks for wall collisions to all walls.
     for wall in walls :
         # Left collision.
-        if pcol_x > wall[0] - 10 and pcol_x < wall[0] + 32 :
-            if pcol_y > wall[1] and pcol_y < wall[1] + 64 :
+        if pcol_x > wall.x - 6 and pcol_x < wall.x + 32 :
+            if pcol_y > wall.y and pcol_y < wall.y + 64 :
                 player_x = player_x - 1
 
         # Right collision.
-        if pcol_x < wall[0] + 76 and pcol_x > wall[0] + 64 :
-            if pcol_y > wall[1] and pcol_y < wall[1] + 64 :
+        if pcol_x < wall.x + 70 and pcol_x > wall.x + 64 :
+            if pcol_y > wall.y and pcol_y < wall.y + 64 :
                 player_x = player_x + 1
 
         # Up collision.
-        if pcol_x > wall[0] and pcol_x < wall[0] + 64 :
-            if pcol_y > wall[1] - 26 and pcol_y < wall[1] + 64 :
+        if pcol_x > wall.x and pcol_x < wall.x + 64 :
+            if pcol_y > wall.y - 26 and pcol_y < wall.y + 64 :
                 player_y = player_y - 1
 
         # Down collision.
-        if pcol_x > wall[0] and pcol_x < wall[0] + 64 :
-            if pcol_y > wall[1] and pcol_y < wall[1] + 81 :
+        if pcol_x > wall.x and pcol_x < wall.x + 64 :
+            if pcol_y > wall.y and pcol_y < wall.y + 81 :
                 player_y = player_y + 1
 
     ## RENDERING ##
@@ -292,14 +337,24 @@ while running :
 
     # Draws player.
     win.blit(sam, (player_x - camera_x, player_y - camera_y, 64, 64), (0, sam_y, 64, 64))
-    pygame.draw.circle(win, (0, 255, 0), (pcol_x - camera_x, pcol_y - camera_y), 10)
-
-    # Draws player hitbox.
-    pygame.draw.rect(win, (255, 0, 0), player_rect, 1)
 
     # Draws items.
     for entity in entities :
         win.blit(entity.entity_surf, (entity.entity_x, entity.entity_y))
+
+    # Debug.
+    pygame.draw.line(win, (0, 0, 255), (pcol_x - camera_x, pcol_y - camera_y),
+                     (tiles[targ_y][targ_x].x - camera_x + 32, tiles[targ_y][targ_x].y - camera_y + 32), 5)
+
+    pygame.draw.rect(win, (255, 0, 0), (targ_tile.x - camera_x, targ_tile.y - camera_y, 64, 64), 1)
+    pygame.draw.rect(win, (0, 0, 255), (player_tile.x - camera_x, player_tile.y - camera_y, 64, 64), 1)
+    i = 0
+
+    for tile in move_list :
+        pygame.draw.rect(win, (0, 255, 0), (tile.x - camera_x, tile.y - camera_y, 64, 64), 1)
+        tile_text = small_text.render(f"N: {str(i)}, S: {str(tile.score)}", True, (0, 255, 0))
+        win.blit(tile_text, (tile.x - camera_x, tile.y - camera_y))
+        i += 1
 
     ## UI RENDERING ##
 
@@ -315,6 +370,7 @@ while running :
         if len(inventory) == 2:
             win.blit(inventory[1][1], ((win_x - (win_x / 10)) + ((win_x / 13) / 10),
                                        win_y - ((win_y / 10) + ((win_y / 10) / 8))))
+
     # Draws stamina bar.
     pygame.draw.rect(win, (255, 255, 255), (win_x / 30, win_y / 40, win_x / 3, win_y / 15))
     pygame.draw.rect(win, stamina_color, (win_x / 25, win_y / 35, (win_x / 3.14) * (stamina / 100), win_y / 16.5))
