@@ -32,7 +32,7 @@ stamina_color = (0, 255, 0)
 
 # Background music
 mixer.init()
-mixer.music.load("Assets//background ambience.mp3")
+mixer.music.load("Assets//Audio//background ambience.mp3")
 mixer.music.play(-1)
 
 brown = (101, 67, 33)
@@ -55,7 +55,7 @@ item_font = pygame.font.SysFont("Times New Roman", 18)
 small_text = pygame.font.SysFont("Times New Roman", 12)
 
 # Loads assets.
-sam = pygame.image.load("Assets//sliding_sam.png")
+sam = pygame.image.load("Assets//Video//sliding_sam.png")
 
 # Image integers for iterating through spritesheets.
 sam_y = 0

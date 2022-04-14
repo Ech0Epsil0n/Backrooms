@@ -20,13 +20,13 @@ class StaticEntity :
 
         # Loads entity image.
         if self.class_type >= 10 and self.class_type < 20 :
-            self.image = pygame.image.load("Assets/trap.png")
+            self.image = pygame.image.load("Assets//Video//trap.png")
 
         elif self.class_type >= 20 :
-            self.image = pygame.image.load("Assets/BigKey.png")
+            self.image = pygame.image.load("Assets//Video//BigKey.png")
 
         else :
-            self.image = pygame.image.load("Assets/SmallKey.png")
+            self.image = pygame.image.load("Assets//Video//SmallKey.png")
 
         # Loads positional data.
         self.mas_x, self.mas_y = pos[0], pos[1]
