@@ -24,7 +24,7 @@
         {
          "columns":1,
          "firstgid":1,
-         "image":"wall_block.png",
+         "image":"../Assets/Video/wall_block.png",
          "imageheight":64,
          "imagewidth":64,
          "margin":0,
