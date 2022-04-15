@@ -122,11 +122,11 @@ mas_audio = 1
 # PLAYS INITIAL AUDIO CONFIGURATION #
 main_menu_cha.play(menu_light_sou, -1)
 
-amb_cha.set_volume((mas_audio + 0.001) * .1)
+amb_cha.set_volume((mas_audio + 0.001) * .15)
 amb_cha.play(buzz_sou, -1)
 
 for cha in sfx_list :
-    cha.set_volume((mas_audio + 0.001) * 0.25)
+    cha.set_volume((mas_audio + 0.001) * 0.4)
 
 win.blit(preload_surf("Initializing UI..."), (0, 0))
 pygame.display.flip()
@@ -527,6 +527,7 @@ while running :
                     if hover_int == 0 :
                         ui_index = None
                         main_menu_cha.fadeout(5000)
+                        amb_cha.fadeout(3000)
                         sfx_cha1.play(transition_sou)
 
                     # GOES TO OPTIONS MENU #
