@@ -74,7 +74,7 @@ pygame.display.flip()
 sam = pygame.image.load("Assets//Video//sliding_sam.png")
 
 # MAIN MENU IMAGES #
-main_menu_background = pygame.image.load("Assets//Video//Main Menu//main_menu.png")
+main_menu_background = pygame.image.load("Assets//Video//Main Menu//main menu.png")
 
 play_uc = pygame.image.load("Assets//Video//Main Menu//play_unclicked.png")
 play_c = pygame.image.load("Assets//Video//Main Menu//play_clicked.png")
@@ -138,10 +138,12 @@ ui_index = 0
 
 # ESTABLISHES NECESSARY VARIABLES #
 button_width, button_height = play_c.get_width(), play_c.get_height()
+print(play_c.get_width())
 select_sound_played = False
 
 # CREATES RECTS OF ALL BUTTONS #
-play_rect = pygame.Rect(button_width * .25, win_y - (button_height + (button_height / 2)), button_width, button_height)
+#play_rect = pygame.Rect(button_width * .055, win_y - (button_height + (button_height / )), button_width, button_height)
+play_rect = pygame.Rect(352, 393, 102, 78)
 options_rect = pygame.Rect(button_width * 1.5, win_y - (button_height + (button_height / 2)), button_width, button_height)
 quit_rect = pygame.Rect(button_width * 2.75, win_y - (button_height + (button_height / 2)), button_width, button_height)
 
