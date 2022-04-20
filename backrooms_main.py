@@ -144,7 +144,8 @@ select_sound_played = False
 # CREATES RECTS OF ALL BUTTONS #
 #play_rect = pygame.Rect(button_width * .055, win_y - (button_height + (button_height / )), button_width, button_height)
 play_rect = pygame.Rect(352, 393, 102, 78)
-options_rect = pygame.Rect(button_width * 1.5, win_y - (button_height + (button_height / 2)), button_width, button_height)
+#options_rect = pygame.Rect(button_width * 1.5, win_y - (button_height + (button_height / 2)), button_width, button_height)
+options_rect = pygame.Rect(281, 480, 234, 99)
 quit_rect = pygame.Rect(button_width * 2.75, win_y - (button_height + (button_height / 2)), button_width, button_height)
 
 # CREATES STATIC LISTS FOR DATA REFERENCE #
