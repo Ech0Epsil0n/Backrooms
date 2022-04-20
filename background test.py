@@ -1,4 +1,6 @@
 from tkinter import *
+import random
+from random import randint
 
 root = Tk()
 root.geometry("800x600")
@@ -27,7 +29,7 @@ def next():
         my_canvas.create_image(0, 0, image = out_images[count + 1], anchor = "nw")
         count += 1
 
-    root.after(500, next)
+    root.after(randint(200, 2000), next)
 
 next()
 mainloop()
