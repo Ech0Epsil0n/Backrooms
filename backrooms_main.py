@@ -113,7 +113,6 @@ ui_sfx = mixer.Channel(2)
 player_sfx = mixer.Channel(3)
 monster_scream = mixer.Channel(4)
 monster_sfx = mixer.Channel(5)
-sfx_list = [ui_sfx, player_sfx, monster_scream, monster_sfx]
 
 # LOADS AUDIO-FILES #
 
@@ -131,12 +130,14 @@ high_scream_sou = mixer.Sound("Assets//Audio//SFX//mon_scream_high.mp3")
 
 # SETS MASTER AUDIO LEVEL #
 mas_audio = 1
+player_step = 1
+
+monster_sfx.set_volume(.75)
+monster_scream.set_volume(.5)
+player_sfx.set_volume(1.25)
 
 win.blit(preload_surf("Initializing UI..."), (0, 0))
 pygame.display.flip()
-
-# CREATES AUDIO-RELATED VARIABLES #
-player_step = 1
 
 ## UI INITIALIZATION ##
 ui_index = 0
@@ -253,14 +254,12 @@ class Monster :
 
 # ESTABLISHES NECESSARY VARIABLES #
 button_width, button_height = play_c.get_width(), play_c.get_height()
-print(play_c.get_width())
 select_sound_played = False
 
 # CREATES RECTS OF ALL BUTTONS #
-#play_rect = pygame.Rect(button_width * .055, win_y - (button_height + (button_height / )), button_width, button_height)
 play_rect = pygame.Rect(352, 393, 102, 78)
-#options_rect = pygame.Rect(button_width * 1.5, win_y - (button_height + (button_height / 2)), button_width, button_height)
 options_rect = pygame.Rect(281, 480, 234, 99)
+
 quit_rect = pygame.Rect(button_width * 2.75, win_y - (button_height + (button_height / 2)), button_width, button_height)
 
 # CREATES STATIC LISTS FOR DATA REFERENCE #
@@ -293,9 +292,6 @@ main_menu_cha.play(menu_light_sou, -1)
 
 amb_cha.set_volume((mas_audio + 0.001) * .15)
 amb_cha.play(buzz_sou, -1)
-
-for cha in sfx_list :
-    cha.set_volume((mas_audio + 0.001) * 0.4)
 
 ## MAIN GAMEPLAY LOOP ##
 while running :
@@ -332,6 +328,7 @@ while running :
         if stamina <= 0 :
             sprinting_bool = False
             stamina_recharge = 3
+            it_speed = 1
             move_speed = 100
             stamina_color = (255, 0, 0)
 

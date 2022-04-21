@@ -118,7 +118,7 @@ def load_map(index) :
 
                         while calculating :
                             try :
-                                if value > tilesets[tileset_int + 1].gid :
+                                if value >= tilesets[tileset_int + 1].gid :
                                     tileset_int += 1
 
                                 else :
@@ -134,13 +134,14 @@ def load_map(index) :
                     # RESETS NECESSARY VARIABLES #
                     fav_tileset = tilesets[tileset_int]
                     column_count = fav_tileset.columns
-                    value_x = value - 1
+                    value_x = value - fav_tileset.gid
                     value_y = 0
 
                     # FINDS PROPER ROW OF TILESET TO BLIT FROM #
-                    while value_x >= column_count :
-                        value_x -= column_count
-                        value_y += 1
+                    if column_count != 1 :
+                        while value_x >= column_count :
+                            value_x -= column_count
+                            value_y += 1
 
                     map_surf.blit(fav_tileset.image, (x, y), (value_x * 64, value_y * 64, 64, 64))
 
