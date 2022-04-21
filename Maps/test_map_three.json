@@ -1,0 +1,56 @@
+{ "compressionlevel":-1,
+ "height":16,
+ "infinite":false,
+ "layers":[
+        {
+         "data":[0, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 0, 6, 0, 0, 0, 1, 3, 0, 0, 0, 0, 0, 1, 2, 3, 0, 4, 6, 1, 3, 0, 4, 6, 0, 0, 0, 0, 0, 4, 0, 6, 0, 4, 6, 4, 6, 0, 4, 6, 0, 0, 0, 0, 0, 4, 0, 6, 0, 4, 6, 4, 6, 0, 4, 6, 0, 0, 0, 0, 0, 4, 0, 6, 0, 4, 6, 4, 6, 0, 4, 6, 0, 0, 0, 0, 0, 4, 0, 6, 0, 4, 6, 4, 6, 0, 7, 9, 0, 0, 0, 0, 0, 4, 0, 6, 0, 4, 6, 4, 6, 0, 0, 0, 0, 0, 0, 0, 0, 7, 8, 9, 0, 4, 6, 2, 2, 2, 2, 2, 2, 2, 3, 0, 0, 0, 0, 0, 0, 4, 6, 8, 8, 8, 8, 8, 8, 8, 9, 0, 0, 0, 0, 0, 0, 4, 6, 0, 0, 0, 0, 0, 0, 1, 3, 0, 0, 0, 0, 0, 0, 4, 6, 0, 0, 0, 0, 0, 0, 4, 6, 0, 0, 0, 0, 0, 0, 4, 6, 0, 0, 0, 0, 0, 0, 4, 6, 0, 0, 0, 0, 0, 0, 4, 6, 0, 0, 0, 0, 0, 0, 7, 9, 0, 0, 0, 0, 0, 0, 4, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0],
+         "height":16,
+         "id":2,
+         "name":"Carpet",
+         "opacity":1,
+         "type":"tilelayer",
+         "visible":true,
+         "width":16,
+         "x":0,
+         "y":0
+        }],
+ "nextlayerid":3,
+ "nextobjectid":1,
+ "orientation":"orthogonal",
+ "renderorder":"right-down",
+ "tiledversion":"1.7.2",
+ "tileheight":64,
+ "tilesets":[
+        {
+         "columns":3,
+         "firstgid":1,
+         "image":"..\/Assets\/Tilesets-Tileset Images\/newwals.png",
+         "imageheight":192,
+         "imagewidth":192,
+         "margin":0,
+         "name":"newwals",
+         "spacing":0,
+         "tilecount":9,
+         "tileheight":64,
+         "tilewidth":64,
+         "transparentcolor":"#ff00ff"
+        }, 
+        {
+         "columns":1,
+         "firstgid":10,
+         "image":"..\/Assets\/Tilesets-Tileset Images\/carpet.png",
+         "imageheight":64,
+         "imagewidth":64,
+         "margin":0,
+         "name":"carpet",
+         "spacing":0,
+         "tilecount":1,
+         "tileheight":64,
+         "tilewidth":64,
+         "transparentcolor":"#ff00ff"
+        }],
+ "tilewidth":64,
+ "type":"map",
+ "version":"1.6",
+ "width":16
+}

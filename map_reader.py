@@ -13,14 +13,12 @@ class Tile:
     def __init__(self, x, y, grid_x, grid_y, valid=True) :
         self.x = x
         self.y = y
-
         self.grid_x = grid_x
         self.grid_y = grid_y
 
         self.score = 0
+        self.adj_list = []
         self.valid = valid
-
-        self.drawn = False
 
     def __str__(self):
         return f"TILE AT ({self.grid_x}, {self.grid_y})"
@@ -32,6 +30,7 @@ def load_map(index) :
     maps = []
     maps.append(open("Maps//test_map_one.json"))
     maps.append(open("Maps//test_map_two.json"))
+    maps.append(open("Maps//test_map_three.json"))
 
     map_data = json.load(maps[index])
 

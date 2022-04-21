@@ -2,7 +2,7 @@
 ## CREATED ON MARCH 17TH, 2022 ##
 ## ETGG 1802 ##
 
-## IMPORTS AND INITIALIZATIONS ##
+### IMPORTS AND INITIALIZATIONS ###
 import pygame
 from pygame import mixer
 
@@ -71,7 +71,7 @@ pygame.display.flip()
 # LOAD IMAGES #
 
 # GAMEPLAY IMAGES #
-sam = pygame.image.load("Assets//Video//sliding_sam.png")
+sam = pygame.image.load("Assets//Video//player_ss.png")
 
 # MAIN MENU IMAGES #
 main_menu_background = pygame.image.load("Assets//Video//Main Menu//main menu.png")
@@ -85,9 +85,14 @@ options_c = pygame.image.load("Assets//Video//Main Menu//options_clicked.png")
 quit_uc = pygame.image.load("Assets//Video//Main Menu//quit_unclicked.png")
 quit_c = pygame.image.load("Assets//Video//Main Menu//quit_clicked.png")
 
-
 # SPRITESHEET ITERATORS #
 sam_y = 0
+sam_x = 0
+
+it_speed = 1
+float_iterator = 0.25
+
+spritesheet_timer = float_iterator
 
 # LIST INITIALIZATION #
 entities = []
@@ -104,35 +109,145 @@ main_menu_cha = mixer.Channel(0)
 amb_cha = mixer.Channel(1)
 
 # WE WILL REQUIRE SEVERAL SFX CHANNELS #
-sfx_cha1 = mixer.Channel(2)
-sfx_cha2 = mixer.Channel(3)
-sfx_cha3 = mixer.Channel(4)
-sfx_list = [sfx_cha1, sfx_cha2, sfx_cha3]
+ui_sfx = mixer.Channel(2)
+player_sfx = mixer.Channel(3)
+monster_scream = mixer.Channel(4)
+monster_sfx = mixer.Channel(5)
+sfx_list = [ui_sfx, player_sfx, monster_scream, monster_sfx]
 
 # LOADS AUDIO-FILES #
+
+# MUSIC #
 menu_light_sou = mixer.Sound("Assets//Audio//menu_light.mp3")
 menu_harsh_sou = mixer.Sound("Assets//Audio//menu_harsh.mp3")
+
+# SOUND EFFECTS #
 buzz_sou = mixer.Sound("Assets//Audio//buzz.mp3")
 select_sou = mixer.Sound("Assets//Audio//SFX//select.wav")
 transition_sou = mixer.Sound("Assets//Audio//SFX//transition.wav")
+small_step_sou = mixer.Sound("Assets//Audio//SFX//small_step.wav")
+big_step_sou = mixer.Sound("Assets//Audio//SFX//big_step.wav")
+high_scream_sou = mixer.Sound("Assets//Audio//SFX//mon_scream_high.mp3")
 
 # SETS MASTER AUDIO LEVEL #
 mas_audio = 1
 
-# PLAYS INITIAL AUDIO CONFIGURATION #
-main_menu_cha.play(menu_light_sou, -1)
-
-amb_cha.set_volume((mas_audio + 0.001) * .15)
-amb_cha.play(buzz_sou, -1)
-
-for cha in sfx_list :
-    cha.set_volume((mas_audio + 0.001) * 0.4)
-
 win.blit(preload_surf("Initializing UI..."), (0, 0))
 pygame.display.flip()
 
+# CREATES AUDIO-RELATED VARIABLES #
+player_step = 1
+
 ## UI INITIALIZATION ##
 ui_index = 0
+
+win.blit(preload_surf("Loading Classes..."), (0, 0))
+pygame.display.flip()
+
+## CLASS DEFINITION ##
+class Monster :
+    """The main monster entity. Has pathfinding, player detection, sound detection, and controls Monster
+    animation and movement."""
+
+    def __init__(self, start_pos, patrol_list=None) :
+        self.pos = list(start_pos)
+        self.move_speed = 300
+        self.monster_ss = pygame.image.load("Assets//Video//monster_ss.png").convert_alpha()
+        self.target_list = []
+        self.walked_list = []
+        self.target_pos = None
+        self.mas_target = None
+
+    def find_target(self, call_tile) :
+        """Finds the target list to the tile that called this function."""
+
+        if self.mas_target is None :
+            self.mas_target = call_tile
+            self.walked_list = []
+
+        # FINDS PLAYER TILE #
+        for row in tiles :
+            for tile in row :
+                tile_rect = pygame.Rect(tile.x, tile.y, 64, 64)
+
+                if tile_rect.collidepoint(monster.pos[0] + 32, monster.pos[1] + 32) :
+                    start_tile = tile
+                    self.walked_list.append(start_tile)
+
+
+        self.target_list = pathfinder.pather(start_tile, self.mas_target, tiles, self)
+
+        return
+
+    def update(self, delta_time) :
+        """Moves Monster towards a target position if one is available. Changes face to more accurately represent
+        movement."""
+
+        ss = 1
+
+        if len(self.target_list) != 0 :
+            self.target_pos = (self.target_list[0].x, self.target_list[0].y)
+
+            if self.target_pos is not None:
+                target_x, target_y = self.target_pos[0], self.target_pos[1]
+                move_x, move_y = 0, 0
+
+                # MOVE RIGHT #
+                if self.pos[0] <= target_x :
+                    move_x += move_speed
+                    ss_x = 2
+
+                # MOVE LEFT #
+                elif self.pos[0] > target_x :
+                    move_x -= move_speed
+                    ss_x = 3
+
+                # MOVE UP #
+                if self.pos[1] >= target_y :
+                    move_y -= move_speed
+                    ss_y = 0
+
+                # MOVE DOWN #
+                elif self.pos[1] < target_y :
+                    move_y += move_speed
+                    ss_y = 1
+
+                # CALCULATES DISTANCE TO TARGET #
+                diff_x, diff_y = target_x - self.pos[0], target_y - self.pos[1]
+
+                # SETS DISTANCE TO ABSOLUTE VALUE #
+                if diff_x < 0 :
+                    diff_x *= -1
+
+                if diff_y < 0 :
+                    diff_y *= -1
+
+                # APPLIES MOVEMENT #
+                if diff_x > diff_y :
+                    self.pos[0] += move_x * delta_time
+                    ss = ss_x
+
+                if diff_y > diff_x :
+                    self.pos[1] += move_y * delta_time
+                    ss = ss_y
+
+                # IF CLOSE ENOUGH TO TARGET, REMOVES TARGET #
+                if diff_x < 3 and diff_y < 3 :
+                    self.target_list.pop(0)
+                    monster_sfx.play(big_step_sou)
+
+                    if len(self.target_list) != 0 :
+                        self.find_target(self.mas_target)
+
+                    else :
+                        self.mas_target = None
+
+        # RETURNS WORK SURFACE WITH MONSTER #
+        work_surf = pygame.Surface((64, 64)).convert_alpha()
+        work_surf.fill((0, 0, 0, 0))
+        work_surf.blit(self.monster_ss, (0, 0), (0, ss * 64, 64, 64))
+
+        return work_surf.convert_alpha()
 
 # MAIN MENU INITIALIZATION #
 
@@ -156,15 +271,31 @@ win.blit(preload_surf("Generating Map..."), (0, 0))
 pygame.display.flip()
 
 ## MAP GENERATION ##
-map_loader = 1
-
+map_loader = 2
 map_surf, objects, tiles, walls = map_reader.load_map(map_loader)
-start_pos = [(576, 900), (128, 64)]
 
-player_x, player_y = start_pos[map_loader][0], start_pos[map_loader][1]
+## MONSTER GENERATION ##
+mons_start_pos = [(64, 64), (148, 64), (192, 64)]
+monster = Monster(mons_start_pos[map_loader])
 
+## PLAYER GENERATION ##
+player_start_pos = [(576, 900), (128, 64), (704, 800)]
+player_x, player_y = player_start_pos[map_loader][0], player_start_pos[map_loader][1]
+
+## STATIC ENTITY GENERATION ##
 for object in objects :
     entities.append(classes.StaticEntity((object[0], object[1]), object[2], object[3]))
+
+### POST-INITIALIZATION ###
+
+# PLAYS INITIAL AUDIO CONFIGURATION #
+main_menu_cha.play(menu_light_sou, -1)
+
+amb_cha.set_volume((mas_audio + 0.001) * .15)
+amb_cha.play(buzz_sou, -1)
+
+for cha in sfx_list :
+    cha.set_volume((mas_audio + 0.001) * 0.4)
 
 ## MAIN GAMEPLAY LOOP ##
 while running :
@@ -213,6 +344,9 @@ while running :
         elif stamina <= 0 :
             stamina = 0
 
+        ## AI ##
+        monster_img = monster.update(delta_time).convert_alpha()
+
         ## EVENT HANDLER ##
         for event in pygame.event.get() :
             # QUIT EVENT #
@@ -227,10 +361,8 @@ while running :
                 # SPEED CONTROL #
                 if event.key == pygame.K_LSHIFT and stamina_recharge <= 0 :
                     move_speed = 300
+                    it_speed = 3
                     sprinting_bool = True
-
-                elif event.key == pygame.K_LCTRL :
-                    move_speed = 25
 
                 # INVENTORY SELECTION #
                 if event.key == pygame.K_1 or event.key == pygame.K_2 :
@@ -304,6 +436,11 @@ while running :
                         if targ_tile.valid == True :
                             move_list = pathfinder.pather(player_tile, targ_tile, tiles)
 
+                    # SETS A TARGET PATH TO MONSTER #
+                    if event.key == pygame.K_LALT :
+                        monster.find_target(targ_tile)
+                        monster_scream.play(high_scream_sou)
+
                     # PRINTS PLAYER POSITION #
                     if event.key == pygame.K_F2 :
                         print(f"PLAYER POS: ({player_tile.grid_x}, {player_tile.grid_y})")
@@ -315,8 +452,9 @@ while running :
             ## KEYBOARD ONE-UP INPUT ##
             if event.type == pygame.KEYUP :
                 # RESETS MOVE SPEED #
-                if event.key == pygame.K_LSHIFT or pygame.key == pygame.K_LCTRL :
+                if event.key == pygame.K_LSHIFT :
                     move_speed = 100
+                    it_speed = 1
                     sprinting_bool = False
 
                 # CONTINUED INVENTORY SELECTION #
@@ -338,26 +476,52 @@ while running :
         # BASIC WASD MOVEMENT #
         pre_player_x = player_x
         pre_player_y = player_y
+        is_moving = False
 
-        if keys[pygame.K_w] :
-            player_y -= move_speed * delta_time
-            sam_y = 0
+        if keys[pygame.K_w] or keys[pygame.K_s] or keys[pygame.K_d] or keys[pygame.K_a] :
+            is_moving = True
 
-        if keys[pygame.K_s] :
-            player_y += move_speed * delta_time
-            sam_y = 64
+            if keys[pygame.K_w] :
+                player_y -= move_speed * delta_time
+                sam_y = 0
 
-        if keys[pygame.K_d] :
-            player_x += move_speed * delta_time
-            sam_y = 128
+            if keys[pygame.K_s] :
+                player_y += move_speed * delta_time
+                sam_y = 64
 
-        if keys[pygame.K_a] :
-            player_x -= move_speed * delta_time
-            sam_y = 192
+            if keys[pygame.K_d] :
+                player_x += move_speed * delta_time
+                sam_y = 128
 
-        if stunned > 0 :
-            player_x = pre_player_x
-            player_y = pre_player_y
+            if keys[pygame.K_a] :
+                player_x -= move_speed * delta_time
+                sam_y = 192
+
+            if stunned > 0 :
+                player_x = pre_player_x
+                player_y = pre_player_y
+
+        # PLAYER HORIZONTAL ANIMATION #
+        if is_moving == True :
+            spritesheet_timer -= it_speed * delta_time
+            player_step -= it_speed * delta_time
+
+            if spritesheet_timer < 0 :
+                sam_x += 1
+                spritesheet_timer = float_iterator
+
+                if sam_x > 2 :
+                    sam_x = 0
+
+            if player_step < 0 :
+                player_sfx.play(small_step_sou)
+                player_step = .8
+
+        # RESETS HORIZONTAL ANIMATION #
+        else :
+            sam_x = 0
+            player_step = .8
+            spritesheet_timer = float_iterator
 
         # UPDATES CAMERA POSITION #
         camera_x, camera_y = player_x - (win_x / 2), player_y - (win_y / 2)
@@ -437,7 +601,10 @@ while running :
         win.blit(map_surf, (0, 0), (camera_x, camera_y, win_x, win_y))
 
         # BLITS PLAYER #
-        win.blit(sam, (player_x - camera_x, player_y - camera_y, 64, 64), (0, sam_y, 64, 64))
+        win.blit(sam, (player_x - camera_x, player_y - camera_y, 64, 64), (sam_x * 64, sam_y, 64, 64))
+
+        # BLITS MONSTER #
+        win.blit(monster_img, (monster.pos[0] - camera_x, monster.pos[1] - camera_y, 64, 64))
 
         # BLITS ITEMS #
         for entity in entities :
@@ -483,6 +650,9 @@ while running :
                 win.blit(tile_text, (tile.x - camera_x, tile.y - camera_y))
                 i += 1
 
+            ## DRAWS MONSTER HITBOX ##
+            pygame.draw.rect(win, (0, 0, 255), (monster.pos[0] - camera_x, monster.pos[1] - camera_y, 64, 64), 1)
+
     ## MAIN MENU SCREEN ##
     elif ui_index == 0 :
         ## UPDATE ##
@@ -502,7 +672,7 @@ while running :
                 hover_int = x
 
                 if select_sound_played == False :
-                    sfx_cha1.play(select_sou)
+                    ui_sfx.play(select_sou)
                     select_sound_played = True
 
         if hover_int != -1 :
@@ -531,7 +701,7 @@ while running :
                         ui_index = None
                         main_menu_cha.fadeout(5000)
                         amb_cha.fadeout(3000)
-                        sfx_cha1.play(transition_sou)
+                        ui_sfx.play(transition_sou)
 
                     # GOES TO OPTIONS MENU #
                     elif hover_int == 1 :

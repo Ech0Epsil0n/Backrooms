@@ -6,6 +6,7 @@
 # Temp init to draw base items instead of importing images.
 import pygame
 import map_reader
+import heapq
 
 pygame.init()
 
@@ -83,89 +84,76 @@ class pathfinder :
 
         return (dist_x + dist_y) / 2
 
-    def pather (self, start_tile, target_tile, tiles) :
-        """Pathfinds from one start location to one end location using the A* method."""
+    def pather (self, start_tile, target_tile, tiles, monster=None) :
+        # DEFINES NECESSARY VARIABLES #
 
-        # INITIALIZES EMPTY LISTS #
+        # GENERATES HEURISTIC FOR START TILE #
         open_list = []
-        closed_list = []
-        path_list = []
-        adj_list = []
+        heuristic = self.calc_dest(start_tile, target_tile)
+        heapq.heappush(open_list, [heuristic, 0, heuristic, start_tile])
 
-        while True :
-            # RESETS PATH #
-            current_tile = start_tile
-            path = []
-            score = 0
+        # GENERATES NECESSARY DICTIONARIES #
+        closed_list = {}
+        history = {start_tile: None}
 
-            while True :
-                # RESETS NECESSARY VARIABLES #
-                add_x = -1
-                add_int = 0
-                adj_list = []
+        # FORMS OPEN LIST #
+        while len(open_list) > 0 :
+            # TAKES MOST PROMISING TILE IN OPEN_LIST #
+            total_cost, cost_so_far, heuristic, cur_tile = heapq.heappop(open_list)
 
-                while add_int < 8 :
-                    # FINDS ALL ADJACENT VALID TILES #
-                    new_tile = None
+            # IF CURRENT TILE IS TARGET, RETURNS HISTORY #
+            if cur_tile == target_tile :
+                break
 
-                    try :
-                        if add_int < 3 :
-                            new_tile = tiles[current_tile.grid_y - 1][current_tile.grid_x + add_x]
+            # FINDS ADJACENT TILES #
+            add_x = -1
+            add_y = -1
+            cur_tile.adj_list = []
 
-                        elif add_int < 6 :
-                            new_tile = tiles[current_tile.grid_y][current_tile.grid_x + add_x]
+            while add_y != 2 :
+                # ATTEMPTS TO FIND ADJACENT TILE OF A SPECIFIC LOCATION #
+                new_tile = None
 
-                        else :
-                            new_tile = tiles[current_tile.grid_y + 1][current_tile.grid_x + add_x]
+                try :
+                    new_tile = tiles[cur_tile.grid_y + add_y][cur_tile.grid_x + add_x]
 
-                    except IndexError :
-                        pass
+                except IndexError :
+                    pass
 
-                    if new_tile is not None :
-                        if new_tile == target_tile :
-                            path_list.append(new_tile)
-                            return path_list
+                # ITERATES THROUGH X/Y FINDERS #
+                add_x += 1
 
-                        elif new_tile.valid == True :
-                            adj_list.append(new_tile)
-                            add_bool = True
+                if add_x == 2 :
+                    add_x = 0
+                    add_y += 1
 
-                            # REMOVES DUPLICATES #
-                            for tile in closed_list :
-                                if tile == new_tile :
-                                    add_bool = False
+                # ADDS NEW TILE TO ADJACENT LIST IF POSSIBLE #
+                if new_tile is not None :
+                    cur_tile.adj_list.append(new_tile)
 
-                            for tile in open_list :
-                                if tile == new_tile :
-                                    add_bool = False
+            # ITERATES THROUGH ALL ADJACENT TILES AND MODIFIES DATA APPROPRIATELY #
+            for neighbor in cur_tile.adj_list :
+                # FINDS TENTATIVE NEIGHBOR COST #
+                tile_dist = self.calc_dest(neighbor, target_tile)
+                tentative_neighbor_cost = cost_so_far + tile_dist
 
-                            if add_bool == True :
-                                open_list.append(new_tile)
+                # MAKES NEW ENTRY IN OPEN_LIST IF NECESSARY #
+                if neighbor not in history :
+                    heapq.heappush(open_list, [tentative_neighbor_cost + tile_dist, tentative_neighbor_cost,
+                                               tile_dist, neighbor])
+                    history[neighbor] = cur_tile
+                    print(history[neighbor])
 
-                    add_x += 1
-                    add_int += 1
+                # REPLACES CURRENT NEIGHBOR DATA WITH MORE EFFICIENT NEIGHBOR DATA #
+                # elif neighbor in closed_list and tentative_neighbor_cost < closed_list[neighbor][1] :
+                #     neighbor_info = closed[neighbor]
+                #     neighbor_info[1] = tentative_neighbor_cost
+                #     neighbor_info[0] = tentative_neighbor_cost + neighbor_info[2]
+                #     history[neighbor] = cur_tile
+                #     del closed[neighbor]
+                #     heapq.heappush(open_list, neighbor_info)
 
-                    if add_x == 2 :
-                        add_x = -1
+            closed_list[cur_tile] = [total_cost, cost_so_far, heuristic, cur_tile]
 
-                # RESETS FAVORITE TILE #
-                favorite = None
-
-                # TILE SCORING #
-                lowest_score = 10000
-
-                for tile in open_list :
-                    if tile not in closed_list :
-                        tile.score = (score + 1) + (self.calc_dest(target_tile, tile))
-
-                        if tile.score < lowest_score :
-                            lowest_score = tile.score
-                            favorite = tile
-
-                # ADDS FAVORITE TO CLOSED_LIST #
-                closed_list.append(favorite)
-                path_list.append(favorite)
-                current_tile = favorite
-
-                # UPDATES SCORE #
-                score += 1
+        print(history)
+        return history
