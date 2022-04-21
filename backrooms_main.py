@@ -5,6 +5,7 @@
 ### IMPORTS AND INITIALIZATIONS ###
 import pygame
 from pygame import mixer
+import time
 
 import classes
 import map_reader
@@ -74,7 +75,10 @@ pygame.display.flip()
 sam = pygame.image.load("Assets//Video//player_ss.png")
 
 # MAIN MENU IMAGES #
-main_menu_background = pygame.image.load("Assets//Video//Main Menu//main menu.png")
+main_menu_background = pygame.image.load("Assets//Video//Main Menu//main_menu sprites.png")
+frame_delay = 0.2
+frame_timer = frame_delay
+frame_column = 1
 
 play_uc = pygame.image.load("Assets//Video//Main Menu//play_unclicked.png")
 play_c = pygame.image.load("Assets//Video//Main Menu//play_clicked.png")
@@ -653,6 +657,12 @@ while running :
     ## MAIN MENU SCREEN ##
     elif ui_index == 0 :
         ## UPDATE ##
+        frame_timer -= frame_delay
+        if frame_timer <= 0:
+            frame_timer = frame_delay
+            frame_column += 1
+            if frame_column >= 1:
+                frame_column = 0
 
         # RESETS NECESSARY VARIABLES #
         hover_int = -1
