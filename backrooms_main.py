@@ -6,6 +6,8 @@
 import pygame
 from pygame import mixer
 import time
+import random
+from random import randint
 
 import classes
 import map_reader
@@ -64,6 +66,7 @@ pathfinder = classes.pathfinder()
 move_list = []
 
 debug = False
+menu = True
 
 ## VIDEO INITIALIZATION ##
 win.blit(preload_surf("Loading Video Assets..."), (0, 0))
@@ -76,7 +79,7 @@ sam = pygame.image.load("Assets//Video//player_ss.png")
 
 # MAIN MENU IMAGES #
 main_menu_background = pygame.image.load("Assets//Video//Main Menu//main_menu sprites.png")
-frame_delay = 0.2
+frame_delay = randint(1, 5)
 frame_timer = frame_delay
 frame_column = 1
 
@@ -657,12 +660,15 @@ while running :
     ## MAIN MENU SCREEN ##
     elif ui_index == 0 :
         ## UPDATE ##
-        frame_timer -= frame_delay
-        if frame_timer <= 0:
-            frame_timer = frame_delay
-            frame_column += 1
-            if frame_column >= 1:
-                frame_column = 0
+        while menu:
+            frame_timer -= frame_delay
+            if frame_timer <= 0:
+                frame_timer = frame_delay
+            main_y = 0
+            if 1 <= frame_timer <= 2:
+                main_y = 600
+            else:
+                main_y = 0
 
         # RESETS NECESSARY VARIABLES #
         hover_int = -1
@@ -721,7 +727,7 @@ while running :
         ## RENDERING ##
 
         # RENDERS BACKGROUND #
-        win.blit(main_menu_background, (0, 0))
+        win.blit(main_menu_background, (0, 0, 800, 600), (0, main_y, 800, 600))
 
         # RENDERS BUTTONS #
         x = 0
