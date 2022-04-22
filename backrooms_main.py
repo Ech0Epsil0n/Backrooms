@@ -79,9 +79,6 @@ sam = pygame.image.load("Assets//Video//player_ss.png")
 
 # MAIN MENU IMAGES #
 main_menu_background = pygame.image.load("Assets//Video//Main Menu//main_menu sprites.png")
-frame_delay = randint(1, 5)
-frame_timer = frame_delay
-frame_column = 1
 
 play_uc = pygame.image.load("Assets//Video//Main Menu//play_unclicked.png")
 play_c = pygame.image.load("Assets//Video//Main Menu//play_clicked.png")
@@ -160,12 +157,13 @@ class Monster :
     animation and movement."""
 
     def __init__(self, start_pos, patrol_list=None) :
+        # BASIC STATIC VARIABLES #
         self.pos = list(start_pos)
         self.monster_ss = pygame.image.load("Assets//Video//monster_ss.png").convert_alpha()
-        self.move_speed = 300
+
+        # PATHFINDING VARIABLES #
+        self.move_speed = 100
         self.target_list = []
-        self.target_int = 0
-        self.tile_type = None
 
     def find_target(self, call_tile) :
         """Finds the target list to the tile that called this function."""
@@ -185,55 +183,84 @@ class Monster :
         """Moves Monster towards a target position if one is available. Changes face to more accurately represent
         movement."""
 
+        # ESTABLISHES NECESSARY VARIABLES #
         ss = 1
 
-        if len(self.target_list) != 0 :
-            # ESTABLISHES NECESSARY VARIABLES #
-            target_x, target_y = self.target_list[0].x, self.target_list[0].y
-            diff_x, diff_y = target_x - self.pos[0], target_y - self.pos[1]
+        # MONSTER PATHFINDING #
+        if len(self.target_list) > 0 :
+            target_tile = self.target_list[0]
+            diff_x, diff_y = target_tile.x - self.pos[0], target_tile.y - self.pos[1]
+            rev_x, rev_y = False, False
 
-            # FINDS FACING #
+            # SETS DIFFERENCE TO ABSOLUTE VALUE #
             if diff_x < 0 :
-                ss_x = 3
-                x_int = -1
                 diff_x *= -1
-
-            else:
-                x_int = 1
-                ss_x = 2
+                rev_x = True
 
             if diff_y < 0 :
-                ss_y = 0
-                y_int = -1
                 diff_y *= -1
+                rev_y = True
 
-            else:
-                y_int = 1
-                ss_y = 1
+            if len(self.target_list) != 0 :
+                # FINDS WHICH WAY TO MOVE #
 
-            print(self.tile_type)
-            # FINDS TILE TYPE #
-            if self.tile_type is None :
+                # MOVES HORIZONTALLY #
                 if diff_x > diff_y :
-                    self.tile_type = 0
+                    # MOVES RIGHT #
+                    if rev_x == False :
+                        self.pos[0] += self.move_speed * delta_time
+                        ss = 2
 
-                else :
-                    self.tile_type = 1
+                    # MOVES LEFT #
+                    else :
+                        self.pos[0] -= self.move_speed * delta_time
+                        ss = 3
 
-            # MOVES MONSTER ACCORDING TO TILE TYPE #
-            if self.tile_type == 0 :
-                self.pos[0] += (move_speed * x_int) * delta_time
-                ss = ss_x
+                # MOVES VERTICALLY #
+                if diff_y > diff_x :
+                    # MOVES UP #
+                    if rev_y == False :
+                        self.pos[1] += self.move_speed * delta_time
+                        ss = 1
 
-            else :
-                self.pos[1] += (move_speed * y_int) * delta_time
-                ss = ss_y
+                    else :
+                        self.pos[1] -= self.move_speed * delta_time
+                        ss = 0
 
-            # IF CLOSE ENOUGH TO TARGET, REMOVES TARGET #
-            if diff_x < 3 and diff_y < 3 :
-                self.tile_type = None
-                self.target_list.pop(0)
-                monster_sfx.play(big_step_sou)
+                # HANDLES DIAGONALS #
+                if diff_x == diff_y and diff_x != 0 and diff_y != 0 :
+                    print(f"DIFF X: {diff_x}. DIFF Y: {diff_y}.")
+
+                    # RESETS NECESSARY VARIABLES #
+                    tile_found = False
+
+                    # CHECKS RIGHTWARD HORIZONTAL MOVEMENT #
+                    if rev_x == False :
+                        if tiles[target_tile.grid_y][target_tile.grid_x + 1].valid == True :
+                            self.target_list.append(tiles[target_tile.grid_y][target_tile.grid_x + 1])
+                            tile_found == True
+
+                    # CHECKS LEFTWARD HORIZONTAL MOVEMENT #
+                    else :
+                        if tiles[target_tile.grid_y][target_tile.grid_x + 1].valid == True :
+                            self.target_list.append(tiles[target_tile.grid_y][target_tile.grid_x + 1])
+                            tile_found == True
+
+                    if tile_found == False :
+                        # CHECKS UPWARD VERTICAL MOVEMENT #
+                        if rev_y == False :
+                            if tiles[target_tile.grid_y - 1][target_tile.grid_x].valid == True :
+                                self.target_list.append(tiles[target_tile.grid_y - 1][target_tile.grid_x])
+
+                        # CHECKS DOWNWARD VERTICAL MOVEMENT #
+                        else :
+                            if tiles[target_tile.grid_y + 1][target_tile.grid_x].valid == True :
+                                self.target_list.append(tiles[target_tile.grid_y + 1][target_tile.grid_x])
+
+                # IF ENCOUNTERED TARGET, ITERATES TO NEXT POSITION #
+                if diff_x < 3 and diff_y < 3 :
+                    monster_sfx.play(big_step_sou)
+                    self.target_list.pop(0)
 
         # RETURNS WORK SURFACE WITH MONSTER #
         work_surf = pygame.Surface((64, 64)).convert_alpha()
@@ -647,17 +674,6 @@ while running :
 
     ## MAIN MENU SCREEN ##
     elif ui_index == 0 :
-        ## UPDATE ##
-        while menu:
-            frame_timer -= frame_delay
-            if frame_timer <= 0:
-                frame_timer = frame_delay
-            main_y = 0
-            if 1 <= frame_timer <= 2:
-                main_y = 600
-            else:
-                main_y = 0
-
         # RESETS NECESSARY VARIABLES #
         hover_int = -1
         button_img_list = [play_uc, options_uc, quit_uc]
@@ -715,7 +731,13 @@ while running :
         ## RENDERING ##
 
         # RENDERS BACKGROUND #
-        win.blit(main_menu_background, (0, 0, 800, 600), (0, main_y, 800, 600))
+        flicker_int = randint(1, 100)
+        background_y = 0
+
+        if flicker_int >= 99 :
+            background_y = 600
+
+        win.blit(main_menu_background, (0, 0, 800, 600), (0, background_y, 800, 600))
 
         # RENDERS BUTTONS #
         x = 0

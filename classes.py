@@ -111,6 +111,17 @@ class pathfinder :
             cur_tile.adj_list = []
 
             while add_y != 2 :
+                # SKIPS DIAGONALS #
+                if add_y == -1 or add_y == 1 :
+                    if add_x == -1 or add_x == 1 :
+                        add_x += 1
+
+                        if add_x > 1 :
+                            add_x = -1
+                            add_y += 1
+
+                        continue
+
                 # ATTEMPTS TO FIND ADJACENT TILE OF A SPECIFIC LOCATION #
                 new_tile = None
 
@@ -143,15 +154,6 @@ class pathfinder :
                                                tile_dist, neighbor])
                     history[neighbor] = cur_tile
 
-                # REPLACES CURRENT NEIGHBOR DATA WITH MORE EFFICIENT NEIGHBOR DATA #
-                # elif neighbor in closed_list and tentative_neighbor_cost < closed_list[neighbor][1] :
-                #     neighbor_info = closed[neighbor]
-                #     neighbor_info[1] = tentative_neighbor_cost
-                #     neighbor_info[0] = tentative_neighbor_cost + neighbor_info[2]
-                #     history[neighbor] = cur_tile
-                #     del closed[neighbor]
-                #     heapq.heappush(open_list, neighbor_info)
-
             closed_list[cur_tile] = [total_cost, cost_so_far, heuristic, cur_tile]
 
         # MODIFIES HISTORY TO REAL PATH #
@@ -160,7 +162,6 @@ class pathfinder :
 
         while current_tile is not None :
             walked_list.insert(0, current_tile)
-            print(current_tile)
             current_tile = history[current_tile]
 
         return walked_list
