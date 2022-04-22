@@ -124,11 +124,11 @@ class pathfinder :
                 add_x += 1
 
                 if add_x == 2 :
-                    add_x = 0
+                    add_x = -1
                     add_y += 1
 
                 # ADDS NEW TILE TO ADJACENT LIST IF POSSIBLE #
-                if new_tile is not None :
+                if new_tile is not None and new_tile.valid == True :
                     cur_tile.adj_list.append(new_tile)
 
             # ITERATES THROUGH ALL ADJACENT TILES AND MODIFIES DATA APPROPRIATELY #
@@ -142,7 +142,6 @@ class pathfinder :
                     heapq.heappush(open_list, [tentative_neighbor_cost + tile_dist, tentative_neighbor_cost,
                                                tile_dist, neighbor])
                     history[neighbor] = cur_tile
-                    print(history[neighbor])
 
                 # REPLACES CURRENT NEIGHBOR DATA WITH MORE EFFICIENT NEIGHBOR DATA #
                 # elif neighbor in closed_list and tentative_neighbor_cost < closed_list[neighbor][1] :
@@ -155,5 +154,13 @@ class pathfinder :
 
             closed_list[cur_tile] = [total_cost, cost_so_far, heuristic, cur_tile]
 
-        print(history)
-        return history
+        # MODIFIES HISTORY TO REAL PATH #
+        walked_list = []
+        current_tile = target_tile
+
+        while current_tile is not None :
+            walked_list.insert(0, current_tile)
+            print(current_tile)
+            current_tile = history[current_tile]
+
+        return walked_list

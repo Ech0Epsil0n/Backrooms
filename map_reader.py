@@ -23,6 +23,9 @@ class Tile:
     def __str__(self):
         return f"TILE AT ({self.grid_x}, {self.grid_y})"
 
+    def __lt__(self, other) :
+        return self.x > other.x
+
 def load_map(index) :
     """Returns a rendered map surface to caller. Which map is rendered is dictated by user-input index value."""
 

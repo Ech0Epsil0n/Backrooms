@@ -94,10 +94,11 @@ quit_c = pygame.image.load("Assets//Video//Main Menu//quit_clicked.png")
 
 # SPRITESHEET ITERATORS #
 sam_y = 0
+old_y = 0
 sam_x = 0
 
 it_speed = 1
-float_iterator = 0.25
+float_iterator = 0.1
 
 spritesheet_timer = float_iterator
 
@@ -140,8 +141,9 @@ mas_audio = 1
 player_step = 1
 
 monster_sfx.set_volume(.75)
-monster_scream.set_volume(.5)
+monster_scream.set_volume(1)
 player_sfx.set_volume(1.25)
+amb_cha.set_volume(.4)
 
 win.blit(preload_surf("Initializing UI..."), (0, 0))
 pygame.display.flip()
@@ -159,32 +161,24 @@ class Monster :
 
     def __init__(self, start_pos, patrol_list=None) :
         self.pos = list(start_pos)
-        self.move_speed = 300
         self.monster_ss = pygame.image.load("Assets//Video//monster_ss.png").convert_alpha()
+        self.move_speed = 300
         self.target_list = []
-        self.walked_list = []
-        self.target_pos = None
-        self.mas_target = None
+        self.target_int = 0
+        self.tile_type = None
 
     def find_target(self, call_tile) :
         """Finds the target list to the tile that called this function."""
 
-        if self.mas_target is None :
-            self.mas_target = call_tile
-            self.walked_list = []
-
-        # FINDS PLAYER TILE #
+        # FINDS MONSTER TILE #
         for row in tiles :
             for tile in row :
                 tile_rect = pygame.Rect(tile.x, tile.y, 64, 64)
 
                 if tile_rect.collidepoint(monster.pos[0] + 32, monster.pos[1] + 32) :
                     start_tile = tile
-                    self.walked_list.append(start_tile)
 
-
-        self.target_list = pathfinder.pather(start_tile, self.mas_target, tiles, self)
-
+        self.target_list = pathfinder.pather(start_tile, call_tile, tiles)
         return
 
     def update(self, delta_time) :
@@ -194,61 +188,52 @@ class Monster :
         ss = 1
 
         if len(self.target_list) != 0 :
-            self.target_pos = (self.target_list[0].x, self.target_list[0].y)
+            # ESTABLISHES NECESSARY VARIABLES #
+            target_x, target_y = self.target_list[0].x, self.target_list[0].y
+            diff_x, diff_y = target_x - self.pos[0], target_y - self.pos[1]
 
-            if self.target_pos is not None:
-                target_x, target_y = self.target_pos[0], self.target_pos[1]
-                move_x, move_y = 0, 0
+            # FINDS FACING #
+            if diff_x < 0 :
+                ss_x = 3
+                x_int = -1
+                diff_x *= -1
 
-                # MOVE RIGHT #
-                if self.pos[0] <= target_x :
-                    move_x += move_speed
-                    ss_x = 2
+            else:
+                x_int = 1
+                ss_x = 2
 
-                # MOVE LEFT #
-                elif self.pos[0] > target_x :
-                    move_x -= move_speed
-                    ss_x = 3
+            if diff_y < 0 :
+                ss_y = 0
+                y_int = -1
+                diff_y *= -1
 
-                # MOVE UP #
-                if self.pos[1] >= target_y :
-                    move_y -= move_speed
-                    ss_y = 0
+            else:
+                y_int = 1
+                ss_y = 1
 
-                # MOVE DOWN #
-                elif self.pos[1] < target_y :
-                    move_y += move_speed
-                    ss_y = 1
-
-                # CALCULATES DISTANCE TO TARGET #
-                diff_x, diff_y = target_x - self.pos[0], target_y - self.pos[1]
-
-                # SETS DISTANCE TO ABSOLUTE VALUE #
-                if diff_x < 0 :
-                    diff_x *= -1
-
-                if diff_y < 0 :
-                    diff_y *= -1
-
-                # APPLIES MOVEMENT #
+            print(self.tile_type)
+            # FINDS TILE TYPE #
+            if self.tile_type is None :
                 if diff_x > diff_y :
-                    self.pos[0] += move_x * delta_time
-                    ss = ss_x
+                    self.tile_type = 0
 
-                if diff_y > diff_x :
-                    self.pos[1] += move_y * delta_time
-                    ss = ss_y
+                else :
+                    self.tile_type = 1
 
-                # IF CLOSE ENOUGH TO TARGET, REMOVES TARGET #
-                if diff_x < 3 and diff_y < 3 :
-                    self.target_list.pop(0)
-                    monster_sfx.play(big_step_sou)
+            # MOVES MONSTER ACCORDING TO TILE TYPE #
+            if self.tile_type == 0 :
+                self.pos[0] += (move_speed * x_int) * delta_time
+                ss = ss_x
 
-                    if len(self.target_list) != 0 :
-                        self.find_target(self.mas_target)
+            else :
+                self.pos[1] += (move_speed * y_int) * delta_time
+                ss = ss_y
 
-                    else :
-                        self.mas_target = None
+            # IF CLOSE ENOUGH TO TARGET, REMOVES TARGET #
+            if diff_x < 3 and diff_y < 3 :
+                self.tile_type = None
+                self.target_list.pop(0)
+                monster_sfx.play(big_step_sou)
 
         # RETURNS WORK SURFACE WITH MONSTER #
         work_surf = pygame.Surface((64, 64)).convert_alpha()
@@ -296,8 +281,6 @@ for object in objects :
 
 # PLAYS INITIAL AUDIO CONFIGURATION #
 main_menu_cha.play(menu_light_sou, -1)
-
-amb_cha.set_volume((mas_audio + 0.001) * .15)
 amb_cha.play(buzz_sou, -1)
 
 ## MAIN GAMEPLAY LOOP ##
@@ -514,7 +497,10 @@ while running :
                 sam_x += 1
                 spritesheet_timer = float_iterator
 
-                if sam_x > 2 :
+                if sam_x > 2 and sam_y < 2 * 64 :
+                    sam_x = 0
+
+                elif sam_x > 7 and sam_y >= 2 * 64 :
                     sam_x = 0
 
             if player_step < 0 :
@@ -522,10 +508,12 @@ while running :
                 player_step = .8
 
         # RESETS HORIZONTAL ANIMATION #
-        else :
+        elif is_moving == False or sam_y != old_y:
             sam_x = 0
             player_step = .8
             spritesheet_timer = float_iterator
+
+        old_y = sam_y
 
         # UPDATES CAMERA POSITION #
         camera_x, camera_y = player_x - (win_x / 2), player_y - (win_y / 2)
@@ -718,7 +706,7 @@ while running :
 
                     # GOES TO OPTIONS MENU #
                     elif hover_int == 1 :
-                        print("OPTIONS MENU")
+                        pass
 
                     # QUITS GAME #
                     elif hover_int == 2 :
