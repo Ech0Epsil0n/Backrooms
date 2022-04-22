@@ -161,8 +161,12 @@ class Monster :
         self.pos = list(start_pos)
         self.monster_ss = pygame.image.load("Assets//Video//monster_ss.png").convert_alpha()
 
+        # ANIMATION VARIABLES #
+        self.anim_tick = .10
+        self.ss_x = 0
+
         # PATHFINDING VARIABLES #
-        self.move_speed = 100
+        self.move_speed = 225
         self.target_list = []
 
     def find_target(self, call_tile) :
@@ -188,9 +192,13 @@ class Monster :
 
         # MONSTER PATHFINDING #
         if len(self.target_list) > 0 :
+            # ESTABLISHES NECESSARY VARIABLES #
             target_tile = self.target_list[0]
             diff_x, diff_y = target_tile.x - self.pos[0], target_tile.y - self.pos[1]
             rev_x, rev_y = False, False
+
+            # UPDATES ANIMATION VARIABLES #
+            self.anim_tick -= 1 * delta_time
 
             # SETS DIFFERENCE TO ABSOLUTE VALUE #
             if diff_x < 0 :
@@ -227,15 +235,29 @@ class Monster :
                         self.pos[1] -= self.move_speed * delta_time
                         ss = 0
 
+                # CHECKS FOR ANIMATION UPDATE #
+                if self.anim_tick <= 0 :
+                    self.ss_x += 1
+                    self.anim_tick = .1
+
+                    # RESET SS_X IF LOOPED #
+                    if self.ss_x > 7 :
+                        self.ss_x = 0
+
                 # IF ENCOUNTERED TARGET, ITERATES TO NEXT POSITION #
                 if diff_x < 3 and diff_y < 3 :
                     monster_sfx.play(big_step_sou)
                     self.target_list.pop(0)
 
+        # RESETS ANIMATION VARIABLES #
+        else :
+            self.anim_tick = .1
+            self.ss_x = 0
+
         # RETURNS WORK SURFACE WITH MONSTER #
         work_surf = pygame.Surface((64, 64)).convert_alpha()
         work_surf.fill((0, 0, 0, 0))
-        work_surf.blit(self.monster_ss, (0, 0), (0, ss * 64, 64, 64))
+        work_surf.blit(self.monster_ss, (0, 0), (self.ss_x * 64, ss * 64, 64, 64))
 
         return work_surf.convert_alpha()
 
