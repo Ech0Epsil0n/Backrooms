@@ -92,6 +92,9 @@ quit_c = pygame.image.load("Assets//Video//Main Menu//quit_clicked.png")
 back_uc = pygame.image.load("Assets//Video//Main Menu//back_unclicked.png")
 back_c = pygame.image.load("Assets//Video//Main Menu//back_clicked.png")
 
+# GAME OVER IMAGES #
+game_over_img = pygame.image.load("Assets//Video//game_over.png")
+
 # SPRITESHEET ITERATORS #
 sam_y = 0
 old_y = 0
@@ -128,9 +131,11 @@ channels = [main_menu_cha, amb_cha, ui_sfx, player_sfx, monster_scream, monster_
 
 # MUSIC #
 menu_light_sou = mixer.Sound("Assets//Audio//menu_light.mp3")
+menu_harsh_sou = mixer.Sound("Assets//Audio//menu_harsh.mp3")
 
 # SOUND EFFECTS #
 buzz_sou = mixer.Sound("Assets//Audio//buzz.mp3")
+death_buzz_sou = mixer.Sound("Assets//Audio//SFX//death_buzz.wav")
 select_sou = mixer.Sound("Assets//Audio//SFX//select.wav")
 transition_sou = mixer.Sound("Assets//Audio//SFX//transition.wav")
 small_step_sou = mixer.Sound("Assets//Audio//SFX//small_step.wav")
@@ -180,6 +185,7 @@ class Monster :
         # BASIC STATIC VARIABLES #
         self.pos = list(start_pos)
         self.monster_ss = pygame.image.load("Assets//Video//monster_ss.png").convert_alpha()
+        self.rect = pygame.Rect
 
         # ANIMATION VARIABLES #
         self.anim_tick = .10
@@ -209,6 +215,9 @@ class Monster :
 
         # ESTABLISHES NECESSARY VARIABLES #
         ss = 1
+
+        # UPDATES MONSTER RECT #
+        self.rect = pygame.Rect(self.pos[0], self.pos[1], 64, 64)
 
         # MONSTER PATHFINDING #
         if len(self.target_list) > 0 :
@@ -302,6 +311,8 @@ quit_rect = pygame.Rect((options_rect[0] - play_rect[0]),
 back_rect = pygame.Rect(win_x / 3, win_y - ((win_y / 30) + back_uc.get_height()), back_uc.get_width(),
                         back_uc.get_height())
 
+exit_rect = pygame.Rect(win_x / 3, win_y - (win_y / 10), quit_c.get_width(), quit_c.get_height())
+
 # CREATES STATIC LISTS FOR DATA REFERENCE #
 button_rect_list = [play_rect, options_rect, quit_rect]
 pressed_button_list = [play_c, options_c, quit_c]
@@ -325,6 +336,62 @@ player_x, player_y = player_start_pos[map_loader][0], player_start_pos[map_loade
 for object in objects :
     entities.append(classes.StaticEntity((object[0], object[1]), object[2], object[3]))
 
+## FUNCTION DEFINITION ##
+def game_over(victory=False) :
+    """Brings player to game over screen. When this method exits, the program should terminate."""
+
+    # ESTABLISHES BASELINE VARIABLES #
+    new_quit_rect = pygame.Rect(win_x / 2.5, win_y - (win_y / 4), quit_c.get_width(), quit_c.get_height())
+    running = True
+
+    # CONFIGURES AUDIO FOR SCENE #
+    main_menu_cha.play(menu_harsh_sou, -1)
+
+    amb_cha.play(death_buzz_sou, -1)
+    amb_cha.set_volume(mas_audio * .25)
+
+    monster_scream.play(high_scream_sou)
+
+    while running :
+        ## GAME OVER SCREEN WITH PLAYER DEFEAT ##
+        if victory == False :
+            ## COLLISION ##
+            mos_pos = pygame.mouse.get_pos()
+
+            # QUIT_RECT COLLISION #
+            if new_quit_rect.collidepoint(mos_pos) :
+                quit_image = quit_c
+                hover_int = 0
+
+            else :
+                quit_image = quit_uc
+                hover_int = -1
+
+            ## EVENT HANDLER ##
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+
+                # KEYDOWN INPUT #
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        running = False
+
+                # MOUSEDOWN INPIUT #
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and hover_int == 0 :
+                    running = False
+
+            ## RENDERING ##
+            win.fill((0, 0, 0))
+
+            # DRAWS BACKGROUND #
+            win.blit(game_over_img, (0, 0))
+
+            # DRAWS QUIT BUTTON #
+            win.blit(quit_image, (new_quit_rect[0], new_quit_rect[1]))
+
+            pygame.display.flip()
+
 ### POST-INITIALIZATION ###
 
 # PLAYS INITIAL AUDIO CONFIGURATION #
@@ -339,8 +406,8 @@ while running :
     ## GAMEPLAY ##
     if ui_index is None :
         ## UPDATE ##
-        player_rect = pygame.Rect((player_x - camera_x) + 20, (player_y - camera_y) + 15, 23, 44)
         pcol_x, pcol_y = player_x + 32, player_y + 32
+        player_rect = pygame.Rect(pcol_x - 10, pcol_y - 18, 20, 45)
 
         stamina_recharge -= 1 * delta_time
         stunned -= 1 * delta_time
@@ -634,6 +701,11 @@ while running :
                 if pcol_y > wall.y and pcol_y < wall.y + 81 :
                     player_y = wall.y + 50
 
+        # MONSTER COLLISION #
+        if player_rect.colliderect(monster.rect) :
+            game_over()
+            running = False
+
         ## RENDERING ##
         win.fill((255, 255, 255))
 
@@ -690,8 +762,11 @@ while running :
                 win.blit(tile_text, (tile.x - camera_x, tile.y - camera_y))
                 i += 1
 
-            ## DRAWS MONSTER HITBOX ##
-            pygame.draw.rect(win, (0, 0, 255), (monster.pos[0] - camera_x, monster.pos[1] - camera_y, 64, 64), 1)
+            ## DRAWS HITBOXS ##
+            pygame.draw.rect(win, (0, 255, 0), (player_rect[0] - camera_x, player_rect[1] - camera_y,
+                                                player_rect[2], player_rect[3]), 1)
+
+            pygame.draw.rect(win, (0, 0, 255), (monster.rect[0] - camera_x, monster.rect[1] - camera_y, 64, 64), 1)
 
     ## MAIN MENU SCREEN ##
     elif ui_index == 0 :
