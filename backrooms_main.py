@@ -95,7 +95,7 @@ old_y = 0
 sam_x = 0
 
 it_speed = 1
-float_iterator = 0.1
+float_iterator = 0.25
 
 spritesheet_timer = float_iterator
 
@@ -123,7 +123,6 @@ monster_sfx = mixer.Channel(5)
 
 # MUSIC #
 menu_light_sou = mixer.Sound("Assets//Audio//menu_light.mp3")
-menu_harsh_sou = mixer.Sound("Assets//Audio//menu_harsh.mp3")
 
 # SOUND EFFECTS #
 buzz_sou = mixer.Sound("Assets//Audio//buzz.mp3")
@@ -332,7 +331,7 @@ while running :
             stamina += 10 * delta_time
 
         else :
-            stamina -= 25 * delta_time
+            stamina -= 40 * delta_time
 
         if stamina <= 0 :
             sprinting_bool = False
