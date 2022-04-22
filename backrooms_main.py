@@ -89,6 +89,9 @@ options_c = pygame.image.load("Assets//Video//Main Menu//options_clicked.png")
 quit_uc = pygame.image.load("Assets//Video//Main Menu//quit_unclicked.png")
 quit_c = pygame.image.load("Assets//Video//Main Menu//quit_clicked.png")
 
+back_uc = pygame.image.load("Assets//Video//Main Menu//back_unclicked.png")
+back_c = pygame.image.load("Assets//Video//Main Menu//back_clicked.png")
+
 # SPRITESHEET ITERATORS #
 sam_y = 0
 old_y = 0
@@ -119,6 +122,8 @@ player_sfx = mixer.Channel(3)
 monster_scream = mixer.Channel(4)
 monster_sfx = mixer.Channel(5)
 
+channels = [main_menu_cha, amb_cha, ui_sfx, player_sfx, monster_scream, monster_sfx]
+
 # LOADS AUDIO-FILES #
 
 # MUSIC #
@@ -133,19 +138,35 @@ big_step_sou = mixer.Sound("Assets//Audio//SFX//big_step.wav")
 high_scream_sou = mixer.Sound("Assets//Audio//SFX//mon_scream_high.mp3")
 
 # SETS MASTER AUDIO LEVEL #
-mas_audio = 1
+mas_audio = 0.5
 player_step = 1
 
-monster_sfx.set_volume(.75)
-monster_scream.set_volume(1)
-player_sfx.set_volume(1.25)
-amb_cha.set_volume(.4)
+# CHANGES AUDIO LEVELS TO MATCH MAS_AUDIO #
+def update_audio() :
+    for cha in channels :
+        if cha == monster_sfx :
+            cha.set_volume(mas_audio * .75)
+
+        elif cha == player_sfx :
+            cha.set_volume(mas_audio * 1.25)
+
+        elif cha == amb_cha :
+            cha.set_volume(mas_audio * .1)
+
+        else :
+            cha.set_volume(mas_audio)
+
+update_audio()
+
 
 win.blit(preload_surf("Initializing UI..."), (0, 0))
 pygame.display.flip()
 
 ## UI INITIALIZATION ##
 ui_index = 0
+
+# OPTIONS MENU VARIABLES #
+options_enabled = False
 
 win.blit(preload_surf("Loading Classes..."), (0, 0))
 pygame.display.flip()
@@ -265,12 +286,21 @@ class Monster :
 # ESTABLISHES NECESSARY VARIABLES #
 button_width, button_height = play_c.get_width(), play_c.get_height()
 select_sound_played = False
+slider_back = pygame.Rect(win_x / 10, win_y - (win_y / 4), win_x / 1.5, win_y / 20)
+slider_width = slider_back[3]
 
 # CREATES RECTS OF ALL BUTTONS #
-play_rect = pygame.Rect(352, 393, 102, 78)
-options_rect = pygame.Rect(281, 480, 234, 99)
+play_rect = pygame.Rect(win_x / 5.5, win_y - (win_y / 2.5), play_c.get_width(), play_c.get_height())
 
-quit_rect = pygame.Rect(button_width * 2.75, win_y - (button_height + (button_height / 2)), button_width, button_height)
+options_rect = pygame.Rect(play_rect[0] + (options_c.get_width() * 1.5), win_y - (win_y / 2.5),
+                           options_c.get_width(), options_c.get_height())
+
+quit_rect = pygame.Rect((options_rect[0] - play_rect[0]),
+                        (play_rect[1] + play_rect[3]) + (quit_c.get_height() * .1), play_c.get_width(),
+                        play_c.get_height())
+
+back_rect = pygame.Rect(win_x / 3, win_y - ((win_y / 30) + back_uc.get_height()), back_uc.get_width(),
+                        back_uc.get_height())
 
 # CREATES STATIC LISTS FOR DATA REFERENCE #
 button_rect_list = [play_rect, options_rect, quit_rect]
@@ -669,72 +699,123 @@ while running :
         hover_int = -1
         button_img_list = [play_uc, options_uc, quit_uc]
 
-        # UPDATES MOUSE POSITION #
-        mos_pos = pygame.mouse.get_pos()
+        ## MASTER RENDERING ##
 
-        ## COLLISION ##
-        x = -1
-        for rect in button_rect_list :
-            x += 1
-            if rect.collidepoint(mos_pos) :
-                hover_int = x
-
-                if select_sound_played == False :
-                    ui_sfx.play(select_sou)
-                    select_sound_played = True
-
-        if hover_int != -1 :
-            button_img_list[hover_int] = pressed_button_list[hover_int]
-
-        else :
-            select_sound_played = False
-
-        ## EVENT HANDLER ##
-        for event in pygame.event.get() :
-            ## QUIT EVENT ##
-            if event.type == pygame.QUIT :
-                running = False
-
-            ## ONE-PRESS KEYBOARD INPUT ##
-            if event.type == pygame.KEYDOWN :
-                if event.key == pygame.K_ESCAPE :
-                    running = False
-
-            ## ONE-PRESS MOUSE INPUT ##
-            if event.type == pygame.MOUSEBUTTONDOWN :
-                # WILL ENACT THE OPERATION FROM A BUTTON IF ONE IS HOVERED OVER #
-                if event.button == 1 and hover_int != -1 :
-                    # STARTS GAME #
-                    if hover_int == 0 :
-                        ui_index = None
-                        main_menu_cha.fadeout(5000)
-                        amb_cha.fadeout(3000)
-                        ui_sfx.play(transition_sou)
-
-                    # GOES TO OPTIONS MENU #
-                    elif hover_int == 1 :
-                        pass
-
-                    # QUITS GAME #
-                    elif hover_int == 2 :
-                        running = False
-
-        ## RENDERING ##
+        # CLEARS SCREEN #
+        win.fill((0, 0, 0))
 
         # RENDERS BACKGROUND #
         flicker_int = randint(1, 100)
         background_y = 0
 
-        if flicker_int >= 99 :
+        if flicker_int >= 99:
             background_y = 600
 
         win.blit(main_menu_background, (0, 0, 800, 600), (0, background_y, 800, 600))
 
-        # RENDERS BUTTONS #
-        x = 0
-        while x < 3 :
-            win.blit(button_img_list[x], (button_rect_list[x][0], button_rect_list[x][1]))
-            x += 1
+        # UPDATES MOUSE POSITION #
+        mos_pos = pygame.mouse.get_pos()
+
+        # MAIN MENU #
+        if options_enabled == False :
+            ## COLLISION ##
+            x = -1
+            for rect in button_rect_list :
+                x += 1
+                if rect.collidepoint(mos_pos) :
+                    hover_int = x
+
+                    if select_sound_played == False :
+                        ui_sfx.play(select_sou)
+                        select_sound_played = True
+
+            if hover_int != -1 :
+                button_img_list[hover_int] = pressed_button_list[hover_int]
+
+            else :
+                select_sound_played = False
+
+            ## RENDERING ##
+
+            # RENDERS BUTTONS #
+            x = 0
+            while x < 3 :
+                win.blit(button_img_list[x], (button_rect_list[x][0], button_rect_list[x][1]))
+                x += 1
+
+        # OPTIONS MENU #
+        else :
+            ## COLLISION ##
+            if back_rect.collidepoint(mos_pos) :
+                back_image = back_c
+                hover_int = 0
+
+            else :
+                back_image = back_uc
+
+            # RENDERING #
+
+            # RENDERS BACK SLIDER #
+            pygame.draw.rect(win, (255, 255, 255), slider_back)
+
+            # RENDERS VOLUME INFO SLIDER #
+            pygame.draw.rect(win, (255, 0, 0), (slider_back[0], slider_back[1], slider_back[2] * mas_audio,
+                                                slider_back[3]))
+
+            # RENDERS BACK BUTTON #
+            win.blit(back_image, back_rect)
+
+        ## EVENT HANDLER ##
+        for event in pygame.event.get():
+            ## QUIT EVENT ##
+            if event.type == pygame.QUIT:
+                running = False
+
+            ## ONE-PRESS KEYBOARD INPUT ##
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    running = False
+
+            ## ONE-PRESS MOUSE INPUT ##
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                # MAIN MENU BUTTON PRESSES #
+                if event.button == 1 and hover_int != -1  :
+                    if options_enabled == False :
+                        # STARTS GAME #
+                        if hover_int == 0:
+                            ui_index = None
+                            main_menu_cha.fadeout(5000)
+                            amb_cha.fadeout(3000)
+                            ui_sfx.play(transition_sou)
+
+                        # GOES TO OPTIONS MENU #
+                        elif hover_int == 1:
+                            options_enabled = True
+
+                        # QUITS GAME #
+                        elif hover_int == 2:
+                            running = False
+
+                    elif options_enabled == True :
+                        # GOES BACK TO MAIN MENU #
+                        if hover_int == 0 :
+                            options_enabled = False
+
+            ## CONTINUOUS INPUT ##
+
+            # MOUSE INPUT #
+            mouse_keys = pygame.mouse.get_pressed()
+
+            # OPTIONS SLIDER INPUT #
+            if mouse_keys[0] == True :
+                if mos_pos[1] > slider_back[1] and mos_pos[1] < slider_back[1] + slider_back[3] :
+                    mas_audio = (mos_pos[0] - slider_back[0]) / slider_back[2]
+                    update_audio()
+
+                    if mas_audio > 1 :
+                        mas_audio = 1
+
+        pygame.display.flip()
 
     pygame.display.flip()
 
