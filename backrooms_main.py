@@ -227,36 +227,6 @@ class Monster :
                         self.pos[1] -= self.move_speed * delta_time
                         ss = 0
 
-                # HANDLES DIAGONALS #
-                if diff_x == diff_y and diff_x != 0 and diff_y != 0 :
-                    print(f"DIFF X: {diff_x}. DIFF Y: {diff_y}.")
-
-                    # RESETS NECESSARY VARIABLES #
-                    tile_found = False
-
-                    # CHECKS RIGHTWARD HORIZONTAL MOVEMENT #
-                    if rev_x == False :
-                        if tiles[target_tile.grid_y][target_tile.grid_x + 1].valid == True :
-                            self.target_list.append(tiles[target_tile.grid_y][target_tile.grid_x + 1])
-                            tile_found == True
-
-                    # CHECKS LEFTWARD HORIZONTAL MOVEMENT #
-                    else :
-                        if tiles[target_tile.grid_y][target_tile.grid_x + 1].valid == True :
-                            self.target_list.append(tiles[target_tile.grid_y][target_tile.grid_x + 1])
-                            tile_found == True
-
-                    if tile_found == False :
-                        # CHECKS UPWARD VERTICAL MOVEMENT #
-                        if rev_y == False :
-                            if tiles[target_tile.grid_y - 1][target_tile.grid_x].valid == True :
-                                self.target_list.append(tiles[target_tile.grid_y - 1][target_tile.grid_x])
-
-                        # CHECKS DOWNWARD VERTICAL MOVEMENT #
-                        else :
-                            if tiles[target_tile.grid_y + 1][target_tile.grid_x].valid == True :
-                                self.target_list.append(tiles[target_tile.grid_y + 1][target_tile.grid_x])
-
                 # IF ENCOUNTERED TARGET, ITERATES TO NEXT POSITION #
                 if diff_x < 3 and diff_y < 3 :
                     monster_sfx.play(big_step_sou)
