@@ -14,59 +14,65 @@ class StaticEntity :
     """A non-moving entity (trap, item, or other static object.) It's type is dictated by map generator-defined index
     value."""
     
-    def __init__ (self, pos, index, name) :
+    def __init__ (self, pos, index, name, image) :
         self.class_type = int(index)
         self.name = name
+        self.image = image
 
-        if self.class_type >= 10 and self.class_type < 20 :
-            self.image = pygame.image.load("Assets//Video//trap.png")
+        # CREATES ENTITY RECT #
+        self.collide_rect = pygame.Rect(pos[0], pos[1], self.image.get_width(), self.image.get_height())
 
-        elif self.class_type >= 20 :
-            self.image = pygame.image.load("Assets//Video//BigKey.png")
+    def use (self, player_facing, player_rect) :
+        # LAUNCHES STUN BALL IN DIRECTION PLAYER IS FACING #
+        if self.class_type == 3 :
+            veloc_speed = 300
+
+            # DICTATES VELOCITY BY PLAYER FACING #
+            if player_facing == 0 :
+                veloc_x, veloc_y = 0, -veloc_speed
+
+            elif player_facing == 1 :
+                veloc_x, veloc_y = 0, veloc_speed
+
+            elif player_facing == 2 :
+                veloc_x, veloc_y = veloc_speed, 0
+
+            elif player_facing == 3 :
+                veloc_x, veloc_y = -veloc_speed, 0
+
+            # CREATES BULLET #
+            return stun_ball((player_rect[0] + (player_rect[2] / 2), player_rect[1] + (player_rect[3] / 2)),
+                             (veloc_x, veloc_y))
+
+        elif self.class_type == 4 :
+            print("Use trap escape!")
+
+class stun_ball :
+    """A basic ball that advances quickly in a given direction and will stun the monster if it collides with it.
+    Degrades over time."""
+
+    def __init__ (self, pos, velocity) :
+        # ESTABLISHES CLASS VARIABLES #
+        self.pos_x, self.pos_y = pos[0], pos[1]
+        self.veloc_x, self.veloc_y = velocity[0], velocity[1]
+        self.radius = 5
+
+    def update (self, delta_time) :
+        # MOVES BALL #
+        self.pos_x += self.veloc_x * delta_time
+        self.pos_y += self.veloc_y * delta_time
+
+        # DEGRADES BALL OVER TIME #
+        self.radius += 40 * delta_time
+
+        # IF BALL IS DEGRADED ENOUGH, DESTROYS BALL #
+        if self.radius > 30 :
+            destroy_bool = True
 
         else :
-            self.image = pygame.image.load("Assets//Video//SmallKey.png")
+            destroy_bool = False
 
-        self.mas_x, self.mas_y = pos[0], pos[1]
-
-        # SETS ENTITY COLOR #
-        if self.class_type < 10 :
-            self.color = (0, 255, 0)
-
-        elif self.class_type > 10 and self.class_type < 20 :
-            self.color = (255, 0, 0)
-
-        else :
-            self.color = (102, 51, 153)
-
-        self.entity_surf = None
-        self.entity_x = None
-        self.entity_y = None
-
-    def use (self) :
-        if self.class_type == 0 :
-            print("Badoonga")
-
-        if self.class_type == 1 :
-            print("TZZZZZ")
-
-
-    def update (self, player_x, player_y) :
-        """Updates positional values, creates work surface, returns to caller. Ideally, should only be ran when
-        StaticEntity would technically be in view."""
-
-        # FINDS POSITIONAL VALUE #
-        pos_x = self.mas_x - player_x
-        pos_y = self.mas_y - player_y
-
-        # CREATES WORK_SURF TO RETURN TO CALLER #
-        work_surface = pygame.Surface((24, 24))
-        work_surface.blit(self.image, (-20, -20))
-
-        # UPDATES COLLISION HITBOX #
-        self.collide_rect = pygame.Rect(pos_x, pos_y, 24, 24)
-
-        return work_surface, pos_x, pos_y
+        return destroy_bool
 
 class pathfinder :
     """A pathfinder class (more accurate to a list of functions) that deals exclusively with pathfinding."""

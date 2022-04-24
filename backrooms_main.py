@@ -77,6 +77,21 @@ pygame.display.flip()
 # GAMEPLAY IMAGES #
 sam = pygame.image.load("Assets//Video//player_ss.png")
 
+# ITEMS #
+small_key = pygame.image.load("Assets//Video//Static Entities//small_key.png")
+big_key = pygame.image.load("Assets//Video//Static Entities//big_key.png")
+backpack = pygame.image.load("Assets//Video//Static Entities//backpack.png")
+stun = pygame.image.load("Assets//Video//Static Entities//stun.png")
+trap_escape = pygame.image.load("Assets//Video//Static Entities//trap_escape.png")
+
+# TRAPS #
+lost_item = pygame.image.load("Assets//Video//Static Entities//lost_item.png")
+bear_trap = pygame.image.load("Assets//Video//Static Entities//trap.png")
+teleport = pygame.image.load("Assets//Video//Static Entities//teleport.png")
+
+# MASTER LIST OF STATIC ENTITIES #
+static_list = [small_key, big_key, backpack, stun, trap_escape, lost_item, bear_trap, teleport]
+
 # MAIN MENU IMAGES #
 main_menu_background = pygame.image.load("Assets//Video//Main Menu//main_menu sprites.png")
 
@@ -108,6 +123,7 @@ spritesheet_timer = float_iterator
 # LIST INITIALIZATION #
 entities = []
 inventory = []
+stun_balls = []
 
 win.blit(preload_surf("Loading Music..."), (0, 0))
 pygame.display.flip()
@@ -143,7 +159,7 @@ big_step_sou = mixer.Sound("Assets//Audio//SFX//big_step.wav")
 high_scream_sou = mixer.Sound("Assets//Audio//SFX//mon_scream_high.mp3")
 
 # SETS MASTER AUDIO LEVEL #
-mas_audio = 0.5
+mas_audio = 0
 player_step = 1
 
 # CHANGES AUDIO LEVELS TO MATCH MAS_AUDIO #
@@ -156,7 +172,7 @@ def update_audio() :
             cha.set_volume(mas_audio * 1.25)
 
         elif cha == amb_cha :
-            cha.set_volume(mas_audio * .1)
+            cha.set_volume(mas_audio * .2)
 
         else :
             cha.set_volume(mas_audio)
@@ -195,6 +211,9 @@ class Monster :
         self.move_speed = 225
         self.target_list = []
 
+        # STUN VARIABLE #
+        self.stun_var = 0
+
     def find_target(self, call_tile) :
         """Finds the target list to the tile that called this function."""
 
@@ -219,68 +238,74 @@ class Monster :
         # UPDATES MONSTER RECT #
         self.rect = pygame.Rect(self.pos[0], self.pos[1], 64, 64)
 
-        # MONSTER PATHFINDING #
-        if len(self.target_list) > 0 :
-            # ESTABLISHES NECESSARY VARIABLES #
-            target_tile = self.target_list[0]
-            diff_x, diff_y = target_tile.x - self.pos[0], target_tile.y - self.pos[1]
-            rev_x, rev_y = False, False
+        # RUNS IF NOT STUNNED #
+        if self.stun_var <= 0 :
+            # MONSTER PATHFINDING #
+            if len(self.target_list) > 0 :
+                # ESTABLISHES NECESSARY VARIABLES #
+                target_tile = self.target_list[0]
+                diff_x, diff_y = target_tile.x - self.pos[0], target_tile.y - self.pos[1]
+                rev_x, rev_y = False, False
 
-            # UPDATES ANIMATION VARIABLES #
-            self.anim_tick -= 1 * delta_time
+                # UPDATES ANIMATION VARIABLES #
+                self.anim_tick -= 1 * delta_time
 
-            # SETS DIFFERENCE TO ABSOLUTE VALUE #
-            if diff_x < 0 :
-                diff_x *= -1
-                rev_x = True
+                # SETS DIFFERENCE TO ABSOLUTE VALUE #
+                if diff_x < 0 :
+                    diff_x *= -1
+                    rev_x = True
 
-            if diff_y < 0 :
-                diff_y *= -1
-                rev_y = True
+                if diff_y < 0 :
+                    diff_y *= -1
+                    rev_y = True
 
-            if len(self.target_list) != 0 :
-                # FINDS WHICH WAY TO MOVE #
+                if len(self.target_list) != 0 :
+                    # FINDS WHICH WAY TO MOVE #
 
-                # MOVES HORIZONTALLY #
-                if diff_x > diff_y :
-                    # MOVES RIGHT #
-                    if rev_x == False :
-                        self.pos[0] += self.move_speed * delta_time
-                        ss = 2
+                    # MOVES HORIZONTALLY #
+                    if diff_x > diff_y :
+                        # MOVES RIGHT #
+                        if rev_x == False :
+                            self.pos[0] += self.move_speed * delta_time
+                            ss = 2
 
-                    # MOVES LEFT #
-                    else :
-                        self.pos[0] -= self.move_speed * delta_time
-                        ss = 3
+                        # MOVES LEFT #
+                        else :
+                            self.pos[0] -= self.move_speed * delta_time
+                            ss = 3
 
-                # MOVES VERTICALLY #
-                if diff_y > diff_x :
-                    # MOVES UP #
-                    if rev_y == False :
-                        self.pos[1] += self.move_speed * delta_time
-                        ss = 1
+                    # MOVES VERTICALLY #
+                    if diff_y > diff_x :
+                        # MOVES UP #
+                        if rev_y == False :
+                            self.pos[1] += self.move_speed * delta_time
+                            ss = 1
 
-                    else :
-                        self.pos[1] -= self.move_speed * delta_time
-                        ss = 0
+                        else :
+                            self.pos[1] -= self.move_speed * delta_time
+                            ss = 0
 
-                # CHECKS FOR ANIMATION UPDATE #
-                if self.anim_tick <= 0 :
-                    self.ss_x += 1
-                    self.anim_tick = .1
+                    # CHECKS FOR ANIMATION UPDATE #
+                    if self.anim_tick <= 0 :
+                        self.ss_x += 1
+                        self.anim_tick = .1
 
-                    # RESET SS_X IF LOOPED #
-                    if self.ss_x > 7 :
-                        self.ss_x = 0
+                        # RESET SS_X IF LOOPED #
+                        if self.ss_x > 7 :
+                            self.ss_x = 0
 
-                # IF ENCOUNTERED TARGET, ITERATES TO NEXT POSITION #
-                if diff_x < 3 and diff_y < 3 :
-                    monster_sfx.play(big_step_sou)
-                    self.target_list.pop(0)
+                    # IF ENCOUNTERED TARGET, ITERATES TO NEXT POSITION #
+                    if diff_x < 3 and diff_y < 3 :
+                        monster_sfx.play(big_step_sou)
+                        self.target_list.pop(0)
 
-        # RESETS ANIMATION VARIABLES #
+            # RESETS ANIMATION VARIABLES #
+            else :
+                self.anim_tick = .1
+                self.ss_x = 0
+
         else :
-            self.anim_tick = .1
+            self.stun_var -= 1 * delta_time
             self.ss_x = 0
 
         # RETURNS WORK SURFACE WITH MONSTER #
@@ -334,7 +359,7 @@ player_x, player_y = player_start_pos[map_loader][0], player_start_pos[map_loade
 
 ## STATIC ENTITY GENERATION ##
 for object in objects :
-    entities.append(classes.StaticEntity((object[0], object[1]), object[2], object[3]))
+    entities.append(classes.StaticEntity((object[0], object[1]), object[2], object[3], static_list[int(object[2])]))
 
 ## FUNCTION DEFINITION ##
 def game_over(victory=False) :
@@ -343,6 +368,7 @@ def game_over(victory=False) :
     # ESTABLISHES BASELINE VARIABLES #
     new_quit_rect = pygame.Rect(win_x / 2.5, win_y - (win_y / 4), quit_c.get_width(), quit_c.get_height())
     running = True
+    play_sound = False
 
     # CONFIGURES AUDIO FOR SCENE #
     main_menu_cha.play(menu_harsh_sou, -1)
@@ -363,7 +389,12 @@ def game_over(victory=False) :
                 quit_image = quit_c
                 hover_int = 0
 
+                if play_sound == False :
+                    ui_sfx.play(select_sou)
+                    play_sound = True
+
             else :
+                play_sound = False
                 quit_image = quit_uc
                 hover_int = -1
 
@@ -446,6 +477,19 @@ while running :
         elif stamina <= 0 :
             stamina = 0
 
+        # UPDATES MOVING STUN BALLS #
+        ball_rect_list = []
+        for ball in stun_balls :
+            # UPDATES AND CHECKS STATE OF BALL #
+            destroy = ball.update(delta_time)
+
+            if destroy == True :
+                stun_balls.remove(ball)
+
+            # CREATES BALL_RECT #
+            ball_rect_list.append(pygame.Rect(ball.pos_x - ball.radius, ball.pos_y - ball.radius,
+                                  ball.radius * 2, ball.radius * 2))
+
         ## AI ##
         monster_img = monster.update(delta_time).convert_alpha()
 
@@ -487,8 +531,10 @@ while running :
                         temp_bool = False
 
                     if temp_bool == True :
-                        inventory[inventory_int][0].use()
-                        inventory.pop(inventory_int)
+                        item = inventory[inventory_int][0]
+
+                        if item.class_type == 3 :
+                            stun_balls.append(item.use(sam_y / 64, player_rect))
 
                     inventory_int = None
                     inv_color1 = brown
@@ -504,9 +550,25 @@ while running :
                         temp_bool = False
 
                     if temp_bool == True :
-                        entities.append(classes.StaticEntity((player_x - 20, player_y + 32),
-                                        inventory[inventory_int][0].class_type, inventory[inventory_int][0].name))
+                        # DICTATES FACING #
+                        if sam_y == 0 :
+                            drop_x, drop_y = 0, -50
 
+                        elif sam_y == 64 :
+                            drop_x, drop_y = 0, 45
+
+                        elif sam_y == 128 :
+                            drop_x, drop_y = 28, 0
+
+                        elif sam_y == 192 :
+                            drop_x, drop_y = -50, 0
+
+                        # ACTUALLY DROPS ITEM #
+                        entities.append(classes.StaticEntity((pcol_x + drop_x, pcol_y + drop_y),
+                                        inventory[inventory_int][0].class_type, inventory[inventory_int][0].name,
+                                        inventory[inventory_int][0].image))
+
+                        # REMOVES ITEM FROM LIST #
                         inventory.pop(inventory_int)
 
                     inventory_int = None
@@ -663,12 +725,10 @@ while running :
 
         # STATIC ENTITY COLLISION #
         for entity in entities :
-            entity.entity_surf, entity.entity_x, entity.entity_y = entity.update(camera_x, camera_y)
-
             if player_rect.colliderect(entity.collide_rect) :
                 if len(inventory) < 2 and entity.class_type < 10 :
                     entities.remove(entity)
-                    inventory.append((entity, item_font.render(entity.name, True, (255, 255, 255))))
+                    inventory.append((entity, entity.image))
 
                 if entity.class_type >= 10 and entity.class_type < 20 :
                     print(f"YOU'VE BEEN HIT BY A {entity.name.upper()}!")
@@ -701,10 +761,16 @@ while running :
                 if pcol_y > wall.y and pcol_y < wall.y + 81 :
                     player_y = wall.y + 50
 
-        # MONSTER COLLISION #
+        # MONSTER-PLAYER COLLISION #
         if player_rect.colliderect(monster.rect) :
             game_over()
             running = False
+
+        # MONSTER-BALL COLLISION #
+        for ball_rect in ball_rect_list :
+            if monster.rect.colliderect(ball_rect) :
+                monster.stun_var = 3
+                stun_balls.remove(stun_balls[ball_rect_list.index(ball_rect)])
 
         ## RENDERING ##
         win.fill((255, 255, 255))
@@ -718,26 +784,28 @@ while running :
         # BLITS MONSTER #
         win.blit(monster_img, (monster.pos[0] - camera_x, monster.pos[1] - camera_y, 64, 64))
 
-        # BLITS ITEMS #
+        # BLITS STATIC ENTITIES #
         for entity in entities :
-            win.blit(entity.entity_surf, (entity.entity_x, entity.entity_y))
+            win.blit(entity.image, (entity.collide_rect[0] - camera_x, entity.collide_rect[1] - camera_y))
+
+        # BLITS STUN BALLS #
+        for ball in stun_balls :
+            pygame.draw.circle(win, (0, 0, 255), (ball.pos_x - camera_x, ball.pos_y - camera_y), ball.radius, 3)
 
         ## UI RENDERING ##
 
         # DRAWS INVENTORY ITEMS #
         pygame.draw.rect(win, (0, 0, 0), (win_x - (win_x / 8), win_y - (win_y / 13), win_x / 20, win_y / 16), 5)
-        pygame.draw.rect(win, inv_color1, (win_x - (win_x / 8), win_y - (win_y / 13), win_x / 20, win_y / 16))
+        inv_1 = pygame.draw.rect(win, inv_color1, (win_x - (win_x / 8), win_y - (win_y / 13), win_x / 20, win_y / 16))
 
         pygame.draw.rect(win, (0, 0, 0), (win_x - (win_x / 15), win_y - (win_y / 13), win_x / 20, win_y / 16), 5)
-        pygame.draw.rect(win, inv_color2, (win_x - (win_x / 15), win_y - (win_y / 13), win_x / 20, win_y / 16))
+        inv_2 = pygame.draw.rect(win, inv_color2, (win_x - (win_x / 15), win_y - (win_y / 13), win_x / 20, win_y / 16))
 
         if len(inventory) >= 1 :
-            win.blit(inventory[0][1], ((win_x - (win_x / 5.6)) + ((win_x / 13) / 10),
-                                       win_y - ((win_y / 10) + ((win_y / 10) / 8))))
+            win.blit(inventory[0][1], (inv_1[0], inv_1[1]))
 
             if len(inventory) == 2:
-                win.blit(inventory[1][1], ((win_x - (win_x / 10)) + ((win_x / 13) / 10),
-                                           win_y - ((win_y / 10) + ((win_y / 10) / 8))))
+                win.blit(inventory[1][1], (inv_2[0], inv_2[1]))
 
         # DRAWS STAMINA #
         pygame.draw.rect(win, (0, 0, 0), (win_x / 30, win_y / 40, win_x / 3, win_y / 15))
@@ -768,6 +836,15 @@ while running :
 
             pygame.draw.rect(win, (0, 0, 255), (monster.rect[0] - camera_x, monster.rect[1] - camera_y, 64, 64), 1)
 
+            for entity in entities :
+                pygame.draw.rect(win, (255, 0, 0), (entity.collide_rect[0] - camera_x,
+                                                    entity.collide_rect[1] - camera_y, entity.collide_rect[2],
+                                                    entity.collide_rect[3]), 1)
+
+            for ball_rect in ball_rect_list :
+                pygame.draw.rect(win, (255, 255, 0), (ball_rect[0] - camera_x, ball_rect[1] - camera_y,
+                                 ball_rect[2], ball_rect[3]), 1)
+
     ## MAIN MENU SCREEN ##
     elif ui_index == 0 :
         # RESETS NECESSARY VARIABLES #
@@ -783,7 +860,7 @@ while running :
         flicker_int = randint(1, 100)
         background_y = 0
 
-        if flicker_int >= 99:
+        if flicker_int >= 99 :
             background_y = 600
 
         win.blit(main_menu_background, (0, 0, 800, 600), (0, background_y, 800, 600))
@@ -882,15 +959,13 @@ while running :
             mouse_keys = pygame.mouse.get_pressed()
 
             # OPTIONS SLIDER INPUT #
-            if mouse_keys[0] == True :
+            if mouse_keys[0] == True and options_enabled == True :
                 if mos_pos[1] > slider_back[1] and mos_pos[1] < slider_back[1] + slider_back[3] :
                     mas_audio = (mos_pos[0] - slider_back[0]) / slider_back[2]
                     update_audio()
 
                     if mas_audio > 1 :
                         mas_audio = 1
-
-        pygame.display.flip()
 
     pygame.display.flip()
 
