@@ -60,7 +60,9 @@ targ_x, targ_y = 0, 0
 
 inv_color1 = brown
 inv_color2 = brown
+inv_color3 = brown
 inventory_int = None
+inventory_ext = False
 
 pathfinder = classes.pathfinder()
 move_list = []
@@ -81,6 +83,7 @@ sam = pygame.image.load("Assets//Video//player_ss.png")
 small_key = pygame.image.load("Assets//Video//Static Entities//small_key.png")
 big_key = pygame.image.load("Assets//Video//Static Entities//big_key.png")
 backpack = pygame.image.load("Assets//Video//Static Entities//backpack.png")
+hammer = pygame.image.load("Assets//Video//Static Entities//hammer.png")
 stun = pygame.image.load("Assets//Video//Static Entities//stun.png")
 trap_escape = pygame.image.load("Assets//Video//Static Entities//trap_escape.png")
 
@@ -89,8 +92,11 @@ lost_item = pygame.image.load("Assets//Video//Static Entities//lost_item.png")
 bear_trap = pygame.image.load("Assets//Video//Static Entities//trap.png")
 teleport = pygame.image.load("Assets//Video//Static Entities//teleport.png")
 
+# MAP #
+carpet_img = pygame.image.load("Assets//Tilesets-Tileset Images//carpet.png")
+
 # MASTER LIST OF STATIC ENTITIES #
-static_list = [small_key, big_key, backpack, stun, trap_escape, lost_item, bear_trap, teleport]
+static_list = [small_key, big_key, backpack, hammer, stun, trap_escape, lost_item, bear_trap, teleport]
 
 # MAIN MENU IMAGES #
 main_menu_background = pygame.image.load("Assets//Video//Main Menu//main_menu sprites.png")
@@ -124,6 +130,7 @@ spritesheet_timer = float_iterator
 entities = []
 inventory = []
 stun_balls = []
+removed_mask = []
 
 win.blit(preload_surf("Loading Music..."), (0, 0))
 pygame.display.flip()
@@ -359,7 +366,8 @@ player_x, player_y = player_start_pos[map_loader][0], player_start_pos[map_loade
 
 ## STATIC ENTITY GENERATION ##
 for object in objects :
-    entities.append(classes.StaticEntity((object[0], object[1]), object[2], object[3], static_list[int(object[2])]))
+    entities.append(classes.StaticEntity((object[0], object[1]), object[2], object[3], static_list[int(object[2])],
+                    tiles))
 
 ## FUNCTION DEFINITION ##
 def game_over(victory=False) :
@@ -511,15 +519,19 @@ while running :
                     sprinting_bool = True
 
                 # INVENTORY SELECTION #
-                if event.key == pygame.K_1 or event.key == pygame.K_2 :
+                if event.key == pygame.K_1 or event.key == pygame.K_2 or event.key == pygame.K_3 :
                     inv_color1 = brown
                     inv_color2 = brown
+                    inv_color3 = brown
 
                     if event.key == pygame.K_1 :
                         inv_color1 = grey
 
                     elif event.key == pygame.K_2 :
                         inv_color2 = grey
+
+                    elif event.key == pygame.K_3 :
+                        inv_color3 = grey
 
                 # INVENTORY USE #
                 if event.key == pygame.K_e and inventory_int is not None :
@@ -533,8 +545,36 @@ while running :
                     if temp_bool == True :
                         item = inventory[inventory_int][0]
 
-                        if item.class_type == 3 :
-                            stun_balls.append(item.use(sam_y / 64, player_rect))
+                        if item.class_type > 2 :
+                            inventory.pop(inventory_int)
+
+                            if item.class_type == 3 :
+                                # SETS TILES ADJACENT TO PLAYER #
+                                add_x = -1
+                                add_y = -1
+                                adj_list = []
+
+                                while add_y < 2 :
+                                    adj_list.append(tiles[player_tile.grid_y + add_y][player_tile.grid_x + add_x])
+
+                                    add_x += 1
+                                    if add_x > 1 :
+                                        add_x = -1
+                                        add_y += 1
+
+                                # IF ANY ADJACENT TILES ARE CRACKED, REMOVES THEM #
+                                for tile in adj_list :
+                                    if tile.crack == True :
+                                        walls.remove(tile)
+                                        tiles[tile.grid_y][tile.grid_x].valid = True
+                                        tile.crack = False
+                                        removed_mask.append((tile.x, tile.y))
+
+                            if item.class_type == 4 :
+                                stun_balls.append(item.use(sam_y / 64, player_rect))
+
+                            if item.class_type == 5 :
+                                stunned = 0
 
                     inventory_int = None
                     inv_color1 = brown
@@ -622,17 +662,33 @@ while running :
                     sprinting_bool = False
 
                 # CONTINUED INVENTORY SELECTION #
-                if event.key == pygame.K_1 or event.key == pygame.K_2 :
+                if event.key == pygame.K_1 or event.key == pygame.K_2 or event.key == pygame.K_3:
                     inv_color1 = brown
                     inv_color2 = brown
 
                     if event.key == pygame.K_1 :
-                        inv_color1 = green
-                        inventory_int = 0
+                        if len(inventory) >= 1 :
+                            inv_color1 = green
+                            inventory_int = 0
+
+                        else :
+                            inv_color1 = brown
 
                     elif event.key == pygame.K_2 :
-                        inv_color2 = green
-                        inventory_int = 1
+                        if len(inventory) >= 2 :
+                            inv_color2 = green
+                            inventory_int = 1
+
+                        else :
+                            inv_color2 = brown
+
+                    elif event.key == pygame.K_3 :
+                        if len(inventory) >= 3 :
+                            inv_color3 = green
+                            inventory_int = 2
+
+                        else :
+                            inv_color3 = brown
 
         ## CONTINUOUS KEYBOARD INPUT ##
         keys = pygame.key.get_pressed()
@@ -664,6 +720,7 @@ while running :
             if stunned > 0 :
                 player_x = pre_player_x
                 player_y = pre_player_y
+                sam_x = 0
 
         # PLAYER HORIZONTAL ANIMATION #
         if is_moving == True :
@@ -726,18 +783,55 @@ while running :
         # STATIC ENTITY COLLISION #
         for entity in entities :
             if player_rect.colliderect(entity.collide_rect) :
-                if len(inventory) < 2 and entity.class_type < 10 :
-                    entities.remove(entity)
-                    inventory.append((entity, entity.image))
+                # ITEM COLLISION #
+                if entity.class_type < 6 :
+                    pickup = False
 
-                if entity.class_type >= 10 and entity.class_type < 20 :
-                    print(f"YOU'VE BEEN HIT BY A {entity.name.upper()}!")
-                    entities.remove(entity)
-                    stunned = 3
+                    ## ON-CONTACT ITEM EFFECTS ##
 
-                if entity.class_type == 20 :
-                    print("YOU'RE A WINNER!")
+                    # BACKPACK #
+                    if entity.class_type == 2 :
+                        inventory_ext = True
+                        entities.remove(entity)
+
+                    ## NON-CONTACT ITEM EFFECTS ##
+                    else :
+                        if inventory_ext == False :
+                            if len(inventory) < 2 :
+                                pickup = True
+
+                        else :
+                            if len(inventory) < 3 :
+                                pickup = True
+
+                    if pickup == True :
+                        entities.remove(entity)
+                        inventory.append((entity, entity.image))
+
+                # TRAP COLLISION #
+                else :
                     entities.remove(entity)
+
+                    # LOST ITEM #
+                    if entity.class_type == 6 :
+                        if len(inventory) > 0 :
+                            inventory.pop(randint(0, len(inventory) - 1))
+
+                    # BEAR TRAP #
+                    if entity.class_type == 7 :
+                        stunned = 3
+
+                    # TELEPORTATION TRAP #
+                    if entity.class_type == 8 :
+                        tile_list = []
+
+                        for row in tiles :
+                            for tile in row :
+                                if tile.valid == True :
+                                    tile_list.append(tile)
+
+                        rand_tile = randint(0, len(tile_list) - 1)
+                        player_x, player_y = tile_list[rand_tile].x, tile_list[rand_tile].y
 
         # WALL COLLISION #
         for wall in walls :
@@ -778,6 +872,10 @@ while running :
         # BLITS MAP #
         win.blit(map_surf, (0, 0), (camera_x, camera_y, win_x, win_y))
 
+        # BLITS CARPET MASKS #
+        for carpet in removed_mask :
+            win.blit(carpet_img, (carpet[0] - camera_x, carpet[1] - camera_y))
+
         # BLITS PLAYER #
         win.blit(sam, (player_x - camera_x, player_y - camera_y, 64, 64), (sam_x * 64, sam_y, 64, 64))
 
@@ -786,7 +884,8 @@ while running :
 
         # BLITS STATIC ENTITIES #
         for entity in entities :
-            win.blit(entity.image, (entity.collide_rect[0] - camera_x, entity.collide_rect[1] - camera_y))
+            if entity.tile.crack == False :
+                win.blit(entity.image, (entity.collide_rect[0] - camera_x, entity.collide_rect[1] - camera_y))
 
         # BLITS STUN BALLS #
         for ball in stun_balls :
@@ -795,17 +894,26 @@ while running :
         ## UI RENDERING ##
 
         # DRAWS INVENTORY ITEMS #
+        pygame.draw.rect(win, (0, 0, 0), (win_x - (win_x / 5.5), win_y - (win_y / 13), win_x / 20, win_y / 16), 5)
+        inv_1 = pygame.draw.rect(win, inv_color1, (win_x - (win_x / 5.5), win_y - (win_y / 13), win_x / 20, win_y / 16))
+
         pygame.draw.rect(win, (0, 0, 0), (win_x - (win_x / 8), win_y - (win_y / 13), win_x / 20, win_y / 16), 5)
-        inv_1 = pygame.draw.rect(win, inv_color1, (win_x - (win_x / 8), win_y - (win_y / 13), win_x / 20, win_y / 16))
+        inv_2 = pygame.draw.rect(win, inv_color2, (win_x - (win_x / 8), win_y - (win_y / 13), win_x / 20, win_y / 16))
+
+        inv_list = [inv_1, inv_2]
 
         pygame.draw.rect(win, (0, 0, 0), (win_x - (win_x / 15), win_y - (win_y / 13), win_x / 20, win_y / 16), 5)
-        inv_2 = pygame.draw.rect(win, inv_color2, (win_x - (win_x / 15), win_y - (win_y / 13), win_x / 20, win_y / 16))
+        if inventory_ext == True :
+            inv_3 = pygame.draw.rect(win, inv_color3,
+                                     (win_x - (win_x / 15), win_y - (win_y / 13), win_x / 20, win_y / 16))
+            inv_list.append(inv_3)
 
-        if len(inventory) >= 1 :
-            win.blit(inventory[0][1], (inv_1[0], inv_1[1]))
+        inv_x = 0
+        for item in inventory :
+            rect = inv_list[inv_x]
+            win.blit(item[1], (rect[0], rect[1]))
 
-            if len(inventory) == 2:
-                win.blit(inventory[1][1], (inv_2[0], inv_2[1]))
+            inv_x += 1
 
         # DRAWS STAMINA #
         pygame.draw.rect(win, (0, 0, 0), (win_x / 30, win_y / 40, win_x / 3, win_y / 15))
@@ -821,7 +929,7 @@ while running :
             pygame.draw.rect(win, (0, 0, 255), (player_tile.x - camera_x, player_tile.y - camera_y, 64, 64), 1)
 
             for tile in walls :
-                pygame.draw.rect(win, (0, 0, 0), (tile.x - camera_x, tile.y - camera_y, 64, 64), 1)
+                pygame.draw.rect(win, (255, 0, 0), (tile.x - camera_x, tile.y - camera_y, 64, 64))
 
             i = 0
             for tile in move_list:

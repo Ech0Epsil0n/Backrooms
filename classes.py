@@ -14,7 +14,7 @@ class StaticEntity :
     """A non-moving entity (trap, item, or other static object.) It's type is dictated by map generator-defined index
     value."""
     
-    def __init__ (self, pos, index, name, image) :
+    def __init__ (self, pos, index, name, image, tiles) :
         self.class_type = int(index)
         self.name = name
         self.image = image
@@ -22,9 +22,17 @@ class StaticEntity :
         # CREATES ENTITY RECT #
         self.collide_rect = pygame.Rect(pos[0], pos[1], self.image.get_width(), self.image.get_height())
 
+        # FINDS ENTITY TILE #
+        for row in tiles:
+            for tile in row:
+                tile_rect = pygame.Rect(tile.x, tile.y, 64, 64)
+
+                if tile_rect.colliderect(self.collide_rect):
+                    self.tile = tile
+
     def use (self, player_facing, player_rect) :
         # LAUNCHES STUN BALL IN DIRECTION PLAYER IS FACING #
-        if self.class_type == 3 :
+        if self.class_type == 4 :
             veloc_speed = 300
 
             # DICTATES VELOCITY BY PLAYER FACING #
@@ -43,9 +51,6 @@ class StaticEntity :
             # CREATES BULLET #
             return stun_ball((player_rect[0] + (player_rect[2] / 2), player_rect[1] + (player_rect[3] / 2)),
                              (veloc_x, veloc_y))
-
-        elif self.class_type == 4 :
-            print("Use trap escape!")
 
 class stun_ball :
     """A basic ball that advances quickly in a given direction and will stun the monster if it collides with it.
