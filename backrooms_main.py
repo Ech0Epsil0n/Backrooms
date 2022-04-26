@@ -173,7 +173,7 @@ taser_sou = mixer.Sound("Assets//Audio//SFX//taser.wav")
 trapped_sou = mixer.Sound("Assets//Audio//SFX//trapped.wav")
 
 # SETS MASTER AUDIO LEVEL #
-mas_audio = 0.5
+mas_audio = 0
 player_step = 1
 
 # CHANGES AUDIO LEVELS TO MATCH MAS_AUDIO #
@@ -223,10 +223,15 @@ class Monster :
 
         # PATHFINDING VARIABLES #
         self.move_speed = 225
+        self.ss = 1
         self.target_list = []
 
         # STUN VARIABLE #
         self.stun_var = 0
+
+        # TILE-RELATED VARIABLES #
+        self.tile = None
+        self.adj_list = []
 
     def find_target(self, call_tile) :
         """Finds the target list to the tile that called this function."""
@@ -241,17 +246,21 @@ class Monster :
                 tile_rect = pygame.Rect(tile.x, tile.y, 64, 64)
 
                 if tile_rect.collidepoint(monster.pos[0] + 32, monster.pos[1] + 32) :
-                    start_tile = tile
+                    monster.tile = tile
 
-        self.target_list = pathfinder.pather(start_tile, call_tile, tiles)
+        self.target_list = pathfinder.pather(monster.tile, call_tile, tiles)
         return
 
     def update(self, delta_time) :
         """Moves Monster towards a target position if one is available. Changes face to more accurately represent
         movement."""
 
-        # ESTABLISHES NECESSARY VARIABLES #
-        ss = 1
+        ## SEARCHES FOR PLAYER ##
+        for tile in self.adj_list :
+            if tile == player_tile :
+                self.find_target(player_tile)
+
+        ## MOVEMENT TO TARGET ##
 
         # UPDATES MONSTER RECT #
         self.rect = pygame.Rect(self.pos[0], self.pos[1], 64, 64)
@@ -285,23 +294,23 @@ class Monster :
                         # MOVES RIGHT #
                         if rev_x == False :
                             self.pos[0] += self.move_speed * delta_time
-                            ss = 2
+                            self.ss = 2
 
                         # MOVES LEFT #
                         else :
                             self.pos[0] -= self.move_speed * delta_time
-                            ss = 3
+                            self.ss = 3
 
                     # MOVES VERTICALLY #
                     if diff_y > diff_x :
                         # MOVES UP #
                         if rev_y == False :
                             self.pos[1] += self.move_speed * delta_time
-                            ss = 1
+                            self.ss = 1
 
                         else :
                             self.pos[1] -= self.move_speed * delta_time
-                            ss = 0
+                            self.ss = 0
 
                     # CHECKS FOR ANIMATION UPDATE #
                     if self.anim_tick <= 0 :
@@ -314,6 +323,8 @@ class Monster :
 
                     # IF ENCOUNTERED TARGET, ITERATES TO NEXT POSITION #
                     if diff_x < 3 and diff_y < 3 :
+                        self.tile = self.target_list[0]
+                        self.set_adj()
                         monster_sfx.play(big_step_sou)
                         self.target_list.pop(0)
 
@@ -329,22 +340,69 @@ class Monster :
         # RETURNS WORK SURFACE WITH MONSTER #
         work_surf = pygame.Surface((64, 64)).convert_alpha()
         work_surf.fill((0, 0, 0, 0))
-        work_surf.blit(self.monster_ss, (0, 0), (self.ss_x * 64, ss * 64, 64, 64))
+        work_surf.blit(self.monster_ss, (0, 0), (self.ss_x * 64, self.ss * 64, 64, 64))
 
         return work_surf.convert_alpha()
+
+    def set_adj (self) :
+        """Creates Monster's new list of adjacent tiles."""
+
+        if self.ss == 0 :
+            x_min, x_max, y_min, y_max = -1, 1, -3, 0
+
+        if self.ss == 1 :
+            x_min, x_max, y_min, y_max = -1, 1, 1, 4
+
+        elif self.ss == 2 :
+            x_min, x_max, y_min, y_max = 1, 4, -1, 2
+
+        elif self.ss == 3 :
+            x_min, x_max, y_min, y_max = -4, -1, -1, 2
+
+        add_x, add_y = x_min, y_min
+        temp_list = []
+
+        # ADDS TILES TO TEMP LIST #
+        while add_y < y_max :
+            try :
+                new_tile = tiles[monster.tile.grid_y + add_y][monster.tile.grid_x + add_x]
+                add = True
+
+            except IndexError :
+                add = False
+                pass
+
+            # ITERATES THROUGH TILES #
+            add_x += 1
+
+            if add_x > x_max :
+                add_x = x_min
+                add_y += 1
+
+
+            # ADDS TILES TO TEMP_LIST #
+            if add == True :
+                # CHECKS VALIDITY OF TILE #
+                if new_tile.valid == False:
+                    add = False
+
+                temp_list.append(new_tile)
+
+        # SETS ADJ_LIST #
+        self.adj_list = temp_list
 
 # MAIN MENU INITIALIZATION #
 
 # ESTABLISHES NECESSARY VARIABLES #
 button_width, button_height = play_c.get_width(), play_c.get_height()
 select_sound_played = False
-slider_back = pygame.Rect(win_x / 10, win_y - (win_y / 4), win_x / 1.5, win_y / 20)
+slider_back = pygame.Rect(win_x / 10, win_y - (win_y / 3), win_x / 1.5, win_y / 20)
 slider_width = slider_back[3]
 
 # CREATES RECTS OF ALL BUTTONS #
-play_rect = pygame.Rect(win_x / 5.5, win_y - (win_y / 2.5), play_c.get_width(), play_c.get_height())
+play_rect = pygame.Rect(win_x / 5.5, win_y - (win_y / 1.75), play_c.get_width(), play_c.get_height())
 
-options_rect = pygame.Rect(play_rect[0] + (options_c.get_width() * 1.5), win_y - (win_y / 2.5),
+options_rect = pygame.Rect(play_rect[0] + (options_c.get_width() * 1), win_y - (win_y / 1.75),
                            options_c.get_width(), options_c.get_height())
 
 quit_rect = pygame.Rect((options_rect[0] - play_rect[0]),
@@ -354,7 +412,7 @@ quit_rect = pygame.Rect((options_rect[0] - play_rect[0]),
 back_rect = pygame.Rect(win_x / 3, win_y - ((win_y / 30) + back_uc.get_height()), back_uc.get_width(),
                         back_uc.get_height())
 
-exit_rect = pygame.Rect(win_x / 3, win_y - (win_y / 10), quit_c.get_width(), quit_c.get_height())
+exit_rect = pygame.Rect(win_x / 1.5, win_y - (win_y / 8), quit_c.get_width(), quit_c.get_height())
 
 # CREATES STATIC LISTS FOR DATA REFERENCE #
 button_rect_list = [play_rect, options_rect, quit_rect]
@@ -380,9 +438,13 @@ for object in objects :
     entities.append(classes.StaticEntity((object[0], object[1]), object[2], object[3], static_list[int(object[2])],
                     tiles))
 
+## RAYCASTING VARIABLE INITIALIZATION ##
+fov = 60
+
+
 ## FUNCTION DEFINITION ##
 def game_over(victory=False) :
-    """Brings player to game over screen. When this method exits, the program should terminate."""
+    """Brings player to game over screen. When this function exits, the program should terminate."""
 
     # ESTABLISHES BASELINE VARIABLES #
     new_quit_rect = pygame.Rect(win_x / 2.5, win_y - (win_y / 4), quit_c.get_width(), quit_c.get_height())
@@ -614,7 +676,7 @@ while running :
                     inv_color1 = brown
                     inv_color2 = brown
                     inv_color3 = brown
-                    `
+
                 # INVENTORY DROP #
                 if event.key == pygame.K_g :
                     try :
@@ -996,6 +1058,10 @@ while running :
                 tile_text = small_text.render(f"N: {str(i)}, S: {str(tile.score)}", True, (0, 255, 0))
                 win.blit(tile_text, (tile.x - camera_x, tile.y - camera_y))
                 i += 1
+
+            # DRAWS MONSTER VIEW TILES #
+            for tile in monster.adj_list :
+                pygame.draw.rect(win, (255, 255, 0), (tile.x - camera_x, tile.y - camera_y, 64, 64))
 
             ## DRAWS HITBOXS ##
             pygame.draw.rect(win, (0, 255, 0), (player_rect[0] - camera_x, player_rect[1] - camera_y,
