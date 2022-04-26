@@ -79,6 +79,31 @@ class stun_ball :
 
         return destroy_bool
 
+class sound_generation :
+    """A sound radius that extends from its epicenter. If it collides with a monster it will call it to the
+    epicenter of the sound radius."""
+
+    def __init__ (self, epicenter, size, tile) :
+        self.epicenter = epicenter
+        self.cur_size = 0
+        self.size = size
+        self.tile = tile
+
+    def update (self, delta_time) :
+        # INCREASES SIZE OF RADIUS. IF RADIUS IS OF SUFFICIENT SIZE, REMOVES RADIUS #
+        self.cur_size += (self.size * 3) * delta_time
+        remove_bool = False
+
+        if self.cur_size >= self.size :
+            remove_bool = True
+
+        # CREATES COLLIDE_RECT #
+        collide_rect = pygame.Rect(self.epicenter[0] - self.cur_size, self.epicenter[1] - self.cur_size,
+                                   self.cur_size * 2, self.cur_size * 2)
+
+        return remove_bool, collide_rect
+
+
 class pathfinder :
     """A pathfinder class (more accurate to a list of functions) that deals exclusively with pathfinding."""
 
@@ -95,7 +120,7 @@ class pathfinder :
 
         return (dist_x + dist_y) / 2
 
-    def pather (self, start_tile, target_tile, tiles, monster=None) :
+    def pather (self, start_tile, target_tile, tiles) :
         # DEFINES NECESSARY VARIABLES #
 
         # GENERATES HEURISTIC FOR START TILE #

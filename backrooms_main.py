@@ -21,7 +21,7 @@ clock = pygame.time.Clock()
 running = True
 
 ## FONTS AND TEXT ##
-big_font = pygame.font.SysFont("Arial", 24)
+big_text = pygame.font.SysFont("Arial", 32, True)
 item_font = pygame.font.SysFont("Times New Roman", 18)
 small_text = pygame.font.SysFont("Times New Roman", 12)
 
@@ -99,7 +99,7 @@ carpet_img = pygame.image.load("Assets//Tilesets-Tileset Images//carpet.png")
 static_list = [small_key, big_key, backpack, hammer, stun, trap_escape, lost_item, bear_trap, teleport]
 
 # MAIN MENU IMAGES #
-main_menu_background = pygame.image.load("Assets//Video//Main Menu//main_menu sprites.png")
+main_menu_background = pygame.image.load("Assets//Video//Main Menu//main_menu_sprites.png")
 
 play_uc = pygame.image.load("Assets//Video//Main Menu//play_unclicked.png")
 play_c = pygame.image.load("Assets//Video//Main Menu//play_clicked.png")
@@ -131,6 +131,7 @@ entities = []
 inventory = []
 stun_balls = []
 removed_mask = []
+sound_radius_list = []
 
 win.blit(preload_surf("Loading Music..."), (0, 0))
 pygame.display.flip()
@@ -147,8 +148,10 @@ ui_sfx = mixer.Channel(2)
 player_sfx = mixer.Channel(3)
 monster_scream = mixer.Channel(4)
 monster_sfx = mixer.Channel(5)
+static_ent_sfx = mixer.Channel(6)
+item_use_sfx = mixer.Channel(7)
 
-channels = [main_menu_cha, amb_cha, ui_sfx, player_sfx, monster_scream, monster_sfx]
+channels = [main_menu_cha, amb_cha, ui_sfx, player_sfx, monster_scream, monster_sfx, static_ent_sfx, item_use_sfx]
 
 # LOADS AUDIO-FILES #
 
@@ -164,9 +167,13 @@ transition_sou = mixer.Sound("Assets//Audio//SFX//transition.wav")
 small_step_sou = mixer.Sound("Assets//Audio//SFX//small_step.wav")
 big_step_sou = mixer.Sound("Assets//Audio//SFX//big_step.wav")
 high_scream_sou = mixer.Sound("Assets//Audio//SFX//mon_scream_high.mp3")
+hammer_sou = mixer.Sound("Assets//Audio//SFX//hammer.wav")
+pickup_sou = mixer.Sound("Assets//Audio//SFX//pickup.wav")
+taser_sou = mixer.Sound("Assets//Audio//SFX//taser.wav")
+trapped_sou = mixer.Sound("Assets//Audio//SFX//trapped.wav")
 
 # SETS MASTER AUDIO LEVEL #
-mas_audio = 0
+mas_audio = 0.5
 player_step = 1
 
 # CHANGES AUDIO LEVELS TO MATCH MAS_AUDIO #
@@ -223,6 +230,10 @@ class Monster :
 
     def find_target(self, call_tile) :
         """Finds the target list to the tile that called this function."""
+
+        # PLAYS SCREAM #
+        if monster_scream.get_busy() == False :
+            monster_scream.play(high_scream_sou)
 
         # FINDS MONSTER TILE #
         for row in tiles :
@@ -501,6 +512,19 @@ while running :
         ## AI ##
         monster_img = monster.update(delta_time).convert_alpha()
 
+        # SOUND RADIUS #
+        for sound_radius in sound_radius_list :
+            remove_bool, collide_rect = sound_radius.update(delta_time)
+
+            # REMOVES SOUND RADIUS FROM LIST #
+            if remove_bool == True :
+                sound_radius_list.remove(sound_radius)
+                continue
+
+            # COLLISION WITH MONSTER #
+            if collide_rect.colliderect(monster.rect) :
+                monster.find_target(sound_radius.tile)
+
         ## EVENT HANDLER ##
         for event in pygame.event.get() :
             # QUIT EVENT #
@@ -548,7 +572,13 @@ while running :
                         if item.class_type > 2 :
                             inventory.pop(inventory_int)
 
+                            # HAMMER ITEM #
                             if item.class_type == 3 :
+                                # GENERATES SOUND #
+                                item_use_sfx.play(hammer_sou)
+                                sound_radius_list.append(classes.sound_generation((pcol_x, pcol_y),
+                                                                                  300, player_tile))
+
                                 # SETS TILES ADJACENT TO PLAYER #
                                 add_x = -1
                                 add_y = -1
@@ -571,6 +601,10 @@ while running :
                                         removed_mask.append((tile.x, tile.y))
 
                             if item.class_type == 4 :
+                                # GENERATES SOUND #
+                                item_use_sfx.play(taser_sou)
+
+                                # CREATES STUN BALL #
                                 stun_balls.append(item.use(sam_y / 64, player_rect))
 
                             if item.class_type == 5 :
@@ -592,21 +626,23 @@ while running :
                     if temp_bool == True :
                         # DICTATES FACING #
                         if sam_y == 0 :
-                            drop_x, drop_y = 0, -50
+                            mul = (0, -2)
 
                         elif sam_y == 64 :
-                            drop_x, drop_y = 0, 45
+                            mul = (0, 1)
 
                         elif sam_y == 128 :
-                            drop_x, drop_y = 28, 0
+                            mul = (1, 0)
 
                         elif sam_y == 192 :
-                            drop_x, drop_y = -50, 0
+                            mul = (-1.5, 0)
 
                         # ACTUALLY DROPS ITEM #
-                        entities.append(classes.StaticEntity((pcol_x + drop_x, pcol_y + drop_y),
-                                        inventory[inventory_int][0].class_type, inventory[inventory_int][0].name,
-                                        inventory[inventory_int][0].image))
+                        entities.append(classes.StaticEntity((pcol_x + (entity.image.get_width() * mul[0]), pcol_y +
+                                                              entity.image.get_height() * mul[1]),
+                                                             inventory[inventory_int][0].class_type,
+                                                             inventory[inventory_int][0].name,
+                                                             inventory[inventory_int][0].image, tiles))
 
                         # REMOVES ITEM FROM LIST #
                         inventory.pop(inventory_int)
@@ -643,7 +679,6 @@ while running :
                     # SETS A TARGET PATH TO MONSTER #
                     if event.key == pygame.K_LALT :
                         monster.find_target(targ_tile)
-                        monster_scream.play(high_scream_sou)
 
                     # PRINTS PLAYER POSITION #
                     if event.key == pygame.K_F2 :
@@ -731,15 +766,22 @@ while running :
                 sam_x += 1
                 spritesheet_timer = float_iterator
 
-                if sam_x > 2 and sam_y < 2 * 64 :
-                    sam_x = 0
-
-                elif sam_x > 7 and sam_y >= 2 * 64 :
+                if sam_x > 7 :
                     sam_x = 0
 
             if player_step < 0 :
                 player_sfx.play(small_step_sou)
                 player_step = .8
+
+                # SOUND GENERATION #
+                if sprinting_bool == True :
+                    size_int = 100
+
+                else :
+                    size_int = 50
+
+                sound_radius_list.append(classes.sound_generation((pcol_x, pcol_y), size_int, player_tile))
+
 
         # RESETS HORIZONTAL ANIMATION #
         elif is_moving == False or sam_y != old_y:
@@ -791,6 +833,10 @@ while running :
 
                     # BACKPACK #
                     if entity.class_type == 2 :
+                        # SOUND GENERATION #
+                        static_ent_sfx.play(pickup_sou)
+                        sound_radius_list.append(classes.sound_generation((pcol_x, pcol_y), 50, player_tile))
+
                         inventory_ext = True
                         entities.remove(entity)
 
@@ -805,12 +851,19 @@ while running :
                                 pickup = True
 
                     if pickup == True :
+                        # SOUND GENERATION #
+                        static_ent_sfx.play(pickup_sou)
+                        sound_radius_list.append(classes.sound_generation((pcol_x, pcol_y), 50, player_tile))
+
                         entities.remove(entity)
                         inventory.append((entity, entity.image))
 
                 # TRAP COLLISION #
                 else :
+                    # ENTITY REMOVAL/SOUND GENERATION #
                     entities.remove(entity)
+                    static_ent_sfx.play(trapped_sou)
+                    sound_radius_list.append(classes.sound_generation((pcol_x, pcol_y), 500, player_tile))
 
                     # LOST ITEM #
                     if entity.class_type == 6 :
@@ -876,6 +929,11 @@ while running :
         for carpet in removed_mask :
             win.blit(carpet_img, (carpet[0] - camera_x, carpet[1] - camera_y))
 
+        # BLITS SOUND RADII #
+        for sound_radius in sound_radius_list :
+            pygame.draw.circle(win, (200, 200, 200, 10), (sound_radius.epicenter[0] - camera_x,
+                                                          sound_radius.epicenter[1] - camera_y), sound_radius.cur_size, 1)
+
         # BLITS PLAYER #
         win.blit(sam, (player_x - camera_x, player_y - camera_y, 64, 64), (sam_x * 64, sam_y, 64, 64))
 
@@ -929,7 +987,7 @@ while running :
             pygame.draw.rect(win, (0, 0, 255), (player_tile.x - camera_x, player_tile.y - camera_y, 64, 64), 1)
 
             for tile in walls :
-                pygame.draw.rect(win, (255, 0, 0), (tile.x - camera_x, tile.y - camera_y, 64, 64))
+                pygame.draw.rect(win, (255, 0, 0), (tile.x - camera_x, tile.y - camera_y, 64, 64), 1)
 
             i = 0
             for tile in move_list:
@@ -945,7 +1003,13 @@ while running :
             pygame.draw.rect(win, (0, 0, 255), (monster.rect[0] - camera_x, monster.rect[1] - camera_y, 64, 64), 1)
 
             for entity in entities :
-                pygame.draw.rect(win, (255, 0, 0), (entity.collide_rect[0] - camera_x,
+                if entity.class_type < 6 :
+                    entity_color = (0, 255, 0)
+
+                else :
+                    entity_color = (255, 0, 0)
+
+                pygame.draw.rect(win, entity_color, (entity.collide_rect[0] - camera_x,
                                                     entity.collide_rect[1] - camera_y, entity.collide_rect[2],
                                                     entity.collide_rect[3]), 1)
 
@@ -1010,8 +1074,13 @@ while running :
                 back_image = back_c
                 hover_int = 0
 
+                if select_sound_played == False:
+                    ui_sfx.play(select_sou)
+                    select_sound_played = True
+
             else :
                 back_image = back_uc
+                select_sound_played = False
 
             # RENDERING #
 
@@ -1021,6 +1090,10 @@ while running :
             # RENDERS VOLUME INFO SLIDER #
             pygame.draw.rect(win, (255, 0, 0), (slider_back[0], slider_back[1], slider_back[2] * mas_audio,
                                                 slider_back[3]))
+
+            # RENDERS VOLUME INFO TEXT #
+            vol_txt = big_text.render(str(f"{int(mas_audio * 100)}%"), True, (255, 255, 0))
+            win.blit(vol_txt, (slider_back[0] + slider_back[2] + (win_x / 20), slider_back[1] - (win_y / 120)))
 
             # RENDERS BACK BUTTON #
             win.blit(back_image, back_rect)
@@ -1072,8 +1145,12 @@ while running :
                     mas_audio = (mos_pos[0] - slider_back[0]) / slider_back[2]
                     update_audio()
 
+                    # BOUNDS MASTER AUDIO #
                     if mas_audio > 1 :
                         mas_audio = 1
+
+                    elif mas_audio < 0 :
+                        mas_audio = 0
 
     pygame.display.flip()
 
