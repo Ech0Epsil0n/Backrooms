@@ -613,7 +613,8 @@ while running :
                     inventory_int = None
                     inv_color1 = brown
                     inv_color2 = brown
-
+                    inv_color3 = brown
+                    `
                 # INVENTORY DROP #
                 if event.key == pygame.K_g :
                     try :
