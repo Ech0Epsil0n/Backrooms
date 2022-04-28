@@ -160,7 +160,7 @@ menu_light_sou = mixer.Sound("Assets//Audio//menu_light.mp3")
 menu_harsh_sou = mixer.Sound("Assets//Audio//menu_harsh.mp3")
 
 # SOUND EFFECTS #
-buzz_sou = mixer.Sound("Assets//Audio//buzz.mp3")
+buzz_sou = mixer.Sound("Assets//Audio//background buzz.mp3")
 death_buzz_sou = mixer.Sound("Assets//Audio//SFX//death_buzz.wav")
 select_sou = mixer.Sound("Assets//Audio//SFX//select.wav")
 transition_sou = mixer.Sound("Assets//Audio//SFX//transition.wav")
