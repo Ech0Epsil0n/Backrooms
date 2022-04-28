@@ -18,10 +18,15 @@ class Tile:
 
         self.score = 0
         self.adj_list = []
+
         self.valid = valid
+        self.crack = False
 
     def __str__(self):
         return f"TILE AT ({self.grid_x}, {self.grid_y})"
+
+    def __lt__(self, other) :
+        return self.x > other.x
 
 def load_map(index) :
     """Returns a rendered map surface to caller. Which map is rendered is dictated by user-input index value."""
@@ -37,17 +42,18 @@ def load_map(index) :
     class Tileset :
         """Contains tileset gid and image data so that reader can parse information accurately."""
 
-        def __init__(self, gid, image_path, columns) :
+        def __init__(self, gid, image_path, columns, name) :
             img_str = "Maps\\" + image_path
 
             self.gid = gid
             self.image = pygame.image.load(img_str)
             self.columns = columns
+            self.name = name
 
     # LOADS TILESETS #
     tilesets = []
     for tileset in map_data["tilesets"] :
-        tilesets.append(Tileset(tileset["firstgid"], tileset["image"], tileset["columns"]))
+        tilesets.append(Tileset(tileset["firstgid"], tileset["image"], tileset["columns"], tileset["name"]))
 
     # CREATES MAP_SURF #
     map_width, map_height = map_data["width"], map_data["height"]
@@ -109,44 +115,51 @@ def load_map(index) :
                 new_tile = Tile(x, y, grid_x, grid_y)
                 wall = False
 
-                if value != 0 :
-                    tileset_int = 0
+                tileset_int = 0
 
-                    # FINDS PROPER TILESET #
-                    if len(tilesets) > 1 :
-                        calculating = True
+                # FINDS PROPER TILESET #
+                if len(tilesets) > 1 :
+                    calculating = True
 
-                        while calculating :
-                            try :
-                                if value >= tilesets[tileset_int + 1].gid :
-                                    tileset_int += 1
+                    while calculating :
+                        try :
+                            if value >= tilesets[tileset_int + 1].gid :
+                                tileset_int += 1
 
-                                else :
-                                    calculating = False
-
-                            except IndexError :
+                            else :
                                 calculating = False
-                                pass
 
-                    if tileset_int == 0 :
-                        wall = True
+                        except IndexError :
+                            calculating = False
+                            pass
 
-                    # RESETS NECESSARY VARIABLES #
-                    fav_tileset = tilesets[tileset_int]
-                    column_count = fav_tileset.columns
-                    value_x = value - fav_tileset.gid
-                    value_y = 0
+                if tileset_int == 0 or value == 0 :
+                    wall = True
 
-                    # FINDS PROPER ROW OF TILESET TO BLIT FROM #
-                    if column_count != 1 :
-                        while value_x >= column_count :
-                            value_x -= column_count
-                            value_y += 1
+                # RESETS NECESSARY VARIABLES #
+                fav_tileset = tilesets[tileset_int]
+                column_count = fav_tileset.columns
+                value_x = value - fav_tileset.gid
+                value_y = 0
+
+                # FINDS PROPER ROW OF TILESET TO BLIT FROM #
+                if column_count != 1 :
+                    while value_x >= column_count :
+                        value_x -= column_count
+                        value_y += 1
 
                     map_surf.blit(fav_tileset.image, (x, y), (value_x * 64, value_y * 64, 64, 64))
 
-                    if wall == True :
-                        new_tile.valid = False
+                else :
+                    value_y = value - fav_tileset.gid
+                    map_surf.blit(fav_tileset.image, (x, y), (0, value_y * 64, 64, 64))
+
+                if wall == True :
+                    new_tile.valid = False
+
+                if fav_tileset.name == "cracked_walls" :
+                    new_tile.crack = True
+                    new_tile.valid = False
 
                 x += 64
                 grid_x += 1
