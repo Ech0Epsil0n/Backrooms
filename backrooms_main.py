@@ -94,6 +94,7 @@ teleport = pygame.image.load("Assets//Video//Static Entities//teleport.png")
 
 # MAP #
 carpet_img = pygame.image.load("Assets//Tilesets-Tileset Images//carpet.png")
+door_img = pygame.image.load("Assets//Video//Static Entities//door.png")
 
 # MASTER LIST OF STATIC ENTITIES #
 static_list = [small_key, big_key, backpack, hammer, stun, trap_escape, lost_item, bear_trap, teleport]
@@ -158,6 +159,7 @@ channels = [main_menu_cha, amb_cha, ui_sfx, player_sfx, monster_scream, monster_
 # MUSIC #
 menu_light_sou = mixer.Sound("Assets//Audio//menu_light.mp3")
 menu_harsh_sou = mixer.Sound("Assets//Audio//menu_harsh.mp3")
+victory_music_sou = mixer.Sound("Assets//Audio//victory_music.wav")
 
 # SOUND EFFECTS #
 buzz_sou = mixer.Sound("Assets//Audio//buzz.mp3")
@@ -173,7 +175,11 @@ taser_sou = mixer.Sound("Assets//Audio//SFX//taser.wav")
 trapped_sou = mixer.Sound("Assets//Audio//SFX//trapped.wav")
 
 # SETS MASTER AUDIO LEVEL #
+<<<<<<< Updated upstream
 mas_audio = 0.5
+=======
+mas_audio = 1
+>>>>>>> Stashed changes
 player_step = 1
 
 # CHANGES AUDIO LEVELS TO MATCH MAS_AUDIO #
@@ -422,25 +428,22 @@ win.blit(preload_surf("Generating Map..."), (0, 0))
 pygame.display.flip()
 
 ## MAP GENERATION ##
-map_loader = 2
+map_loader = 1
 map_surf, objects, tiles, walls = map_reader.load_map(map_loader)
+doors = [map_reader.Tile(64, 64, 1, 1)]
 
 ## MONSTER GENERATION ##
-mons_start_pos = [(64, 64), (148, 64), (192, 64)]
+mons_start_pos = [(64, 64), (192, 64)]
 monster = Monster(mons_start_pos[map_loader])
 
 ## PLAYER GENERATION ##
-player_start_pos = [(576, 900), (128, 64), (704, 800)]
+player_start_pos = [(576, 900), (704, 800)]
 player_x, player_y = player_start_pos[map_loader][0], player_start_pos[map_loader][1]
 
 ## STATIC ENTITY GENERATION ##
 for object in objects :
     entities.append(classes.StaticEntity((object[0], object[1]), object[2], object[3], static_list[int(object[2])],
                     tiles))
-
-## RAYCASTING VARIABLE INITIALIZATION ##
-fov = 60
-
 
 ## FUNCTION DEFINITION ##
 def game_over(victory=False) :
@@ -451,47 +454,52 @@ def game_over(victory=False) :
     running = True
     play_sound = False
 
-    # CONFIGURES AUDIO FOR SCENE #
-    main_menu_cha.play(menu_harsh_sou, -1)
+    if victory == False :
+        # CONFIGURES AUDIO FOR SCENE #
+        main_menu_cha.play(menu_harsh_sou, -1)
 
-    amb_cha.play(death_buzz_sou, -1)
-    amb_cha.set_volume(mas_audio * .25)
+        amb_cha.play(death_buzz_sou, -1)
+        amb_cha.set_volume(mas_audio * .25)
 
-    monster_scream.play(high_scream_sou)
+        monster_scream.play(high_scream_sou)
+
+    else :
+        # CONFIGURES AUDIO FOR SCENE #
+        main_menu_cha.play(victory_music_sou, -1)
+
+        game_over_img = pygame.image.load("Assets//Video//victory.png")
 
     while running :
-        ## GAME OVER SCREEN WITH PLAYER DEFEAT ##
-        if victory == False :
-            ## COLLISION ##
-            mos_pos = pygame.mouse.get_pos()
+        ## COLLISION ##
+        mos_pos = pygame.mouse.get_pos()
 
-            # QUIT_RECT COLLISION #
-            if new_quit_rect.collidepoint(mos_pos) :
-                quit_image = quit_c
-                hover_int = 0
+        # QUIT_RECT COLLISION #
+        if new_quit_rect.collidepoint(mos_pos) :
+            quit_image = quit_c
+            hover_int = 0
 
-                if play_sound == False :
-                    ui_sfx.play(select_sou)
-                    play_sound = True
+            if play_sound == False :
+                ui_sfx.play(select_sou)
+                play_sound = True
 
-            else :
-                play_sound = False
-                quit_image = quit_uc
-                hover_int = -1
+        else :
+            play_sound = False
+            quit_image = quit_uc
+            hover_int = -1
 
-            ## EVENT HANDLER ##
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
+        ## EVENT HANDLER ##
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+            # KEYDOWN INPUT #
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
                     running = False
 
-                # KEYDOWN INPUT #
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        running = False
-
-                # MOUSEDOWN INPIUT #
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and hover_int == 0 :
-                    running = False
+            # MOUSEDOWN INPIUT #
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and hover_int == 0 :
+                running = False
 
             ## RENDERING ##
             win.fill((0, 0, 0))
@@ -503,6 +511,9 @@ def game_over(victory=False) :
             win.blit(quit_image, (new_quit_rect[0], new_quit_rect[1]))
 
             pygame.display.flip()
+
+    pygame.quit()
+    quit()
 
 ### POST-INITIALIZATION ###
 
@@ -917,7 +928,6 @@ while running :
                     if pickup == True :
                         # SOUND GENERATION #
                         static_ent_sfx.play(pickup_sou)
-                        sound_radius_list.append(classes.sound_generation((pcol_x, pcol_y), 50, player_tile))
 
                         entities.remove(entity)
                         inventory.append((entity, entity.image))
@@ -972,6 +982,19 @@ while running :
                 if pcol_y > wall.y and pcol_y < wall.y + 81 :
                     player_y = wall.y + 50
 
+        # PLAYER-DOOR COLLISION #
+        for door in doors :
+            door_rect = pygame.Rect(door.x, door.y, 64, 64)
+
+            if door_rect.colliderect(player_rect) :
+                key_bool = False
+                for item in inventory :
+                    if item[0].class_type == 0 :
+                        key_bool = True
+
+                if key_bool == True :
+                    game_over(True)
+
         # MONSTER-PLAYER COLLISION #
         if player_rect.colliderect(monster.rect) :
             game_over()
@@ -988,6 +1011,10 @@ while running :
 
         # BLITS MAP #
         win.blit(map_surf, (0, 0), (camera_x, camera_y, win_x, win_y))
+
+        # DRAWS DOORS #
+        for door in doors :
+            win.blit(door_img, (door.x - camera_x, door.y - camera_y))
 
         # BLITS CARPET MASKS #
         for carpet in removed_mask :

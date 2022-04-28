@@ -33,9 +33,8 @@ def load_map(index) :
 
     # LOADS MAPS INTO LIST #
     maps = []
-    maps.append(open("Maps//test_map_one.json"))
-    maps.append(open("Maps//test_map_two.json"))
-    maps.append(open("Maps//test_map_three.json"))
+    maps.append(open("Maps//map_one.json"))
+    maps.append(open("Maps//fallback_map.json"))
 
     map_data = json.load(maps[index])
 
