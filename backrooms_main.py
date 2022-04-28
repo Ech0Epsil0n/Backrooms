@@ -660,15 +660,14 @@ while running :
     ## MAIN MENU SCREEN ##
     elif ui_index == 0 :
         ## UPDATE ##
-        while menu:
-            frame_timer -= frame_delay
-            if frame_timer <= 0:
-                frame_timer = frame_delay
+        frame_timer -= frame_delay
+        if frame_timer <= 0:
+            frame_timer = frame_delay
+        main_y = 0
+        if 1 <= frame_timer <= 2:
+            main_y = 600
+        else:
             main_y = 0
-            if 1 <= frame_timer <= 2:
-                main_y = 600
-            else:
-                main_y = 0
 
         # RESETS NECESSARY VARIABLES #
         hover_int = -1
