@@ -115,7 +115,8 @@ back_uc = pygame.image.load("Assets//Video//Main Menu//back_unclicked.png")
 back_c = pygame.image.load("Assets//Video//Main Menu//back_clicked.png")
 
 # GAME OVER IMAGES #
-game_over_img = pygame.image.load("Assets//Video//death screen.png")
+win_img = pygame.image.load("Assets//Video//win_screen.png")
+game_over_img = pygame.image.load("Assets//Video//game_over.png")
 
 # SPRITESHEET ITERATORS #
 sam_y = 0
@@ -175,11 +176,7 @@ taser_sou = mixer.Sound("Assets//Audio//SFX//taser.wav")
 trapped_sou = mixer.Sound("Assets//Audio//SFX//trapped.wav")
 
 # SETS MASTER AUDIO LEVEL #
-<<<<<<< Updated upstream
-mas_audio = 0.5
-=======
 mas_audio = 1
->>>>>>> Stashed changes
 player_step = 1
 
 # CHANGES AUDIO LEVELS TO MATCH MAS_AUDIO #
@@ -406,19 +403,15 @@ slider_back = pygame.Rect(win_x / 10, win_y - (win_y / 3), win_x / 1.5, win_y / 
 slider_width = slider_back[3]
 
 # CREATES RECTS OF ALL BUTTONS #
-play_rect = pygame.Rect(win_x / 5.5, win_y - (win_y / 1.75), play_c.get_width(), play_c.get_height())
+play_rect = pygame.Rect(200, 350, play_uc.get_width(), play_uc.get_height())
 
-options_rect = pygame.Rect(play_rect[0] + (options_c.get_width() * 1), win_y - (win_y / 1.75),
-                           options_c.get_width(), options_c.get_height())
+options_rect = pygame.Rect(400, 325, options_uc.get_width(), options_uc.get_height())
 
-quit_rect = pygame.Rect((options_rect[0] - play_rect[0]),
-                        (play_rect[1] + play_rect[3]) + (quit_c.get_height() * .1), play_c.get_width(),
-                        play_c.get_height())
+quit_rect = pygame.Rect(300, 450, quit_uc.get_width(), quit_uc.get_height())
 
-back_rect = pygame.Rect(win_x / 3, win_y - ((win_y / 30) + back_uc.get_height()), back_uc.get_width(),
-                        back_uc.get_height())
+back_rect = pygame.Rect(300, 450, back_uc.get_width(), back_uc.get_height())
 
-exit_rect = pygame.Rect(win_x / 1.5, win_y - (win_y / 8), quit_c.get_width(), quit_c.get_height())
+exit_rect = pygame.Rect(400, 400, quit_uc.get_width(), quit_uc.get_height())
 
 # CREATES STATIC LISTS FOR DATA REFERENCE #
 button_rect_list = [play_rect, options_rect, quit_rect]
@@ -463,11 +456,13 @@ def game_over(victory=False) :
 
         monster_scream.play(high_scream_sou)
 
+        over_img = game_over_img
+
     else :
         # CONFIGURES AUDIO FOR SCENE #
         main_menu_cha.play(victory_music_sou, -1)
 
-        game_over_img = pygame.image.load("Assets//Video//victory.png")
+        over_img = win_img
 
     while running :
         ## COLLISION ##
@@ -501,16 +496,16 @@ def game_over(victory=False) :
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and hover_int == 0 :
                 running = False
 
-            ## RENDERING ##
-            win.fill((0, 0, 0))
+        ## RENDERING ##
+        win.fill((0, 0, 0))
 
-            # DRAWS BACKGROUND #
-            win.blit(game_over_img, (0, 0))
+        # DRAWS BACKGROUND #
+        win.blit(over_img, (0, 0))
 
-            # DRAWS QUIT BUTTON #
-            win.blit(quit_image, (new_quit_rect[0], new_quit_rect[1]))
+        # DRAWS QUIT BUTTON #
+        win.blit(quit_image, (new_quit_rect[0], new_quit_rect[1]))
 
-            pygame.display.flip()
+        pygame.display.flip()
 
     pygame.quit()
     quit()
@@ -519,17 +514,16 @@ def game_over(victory=False) :
 
 # PLAYS INITIAL AUDIO CONFIGURATION #
 main_menu_cha.play(menu_light_sou, -1)
+amb_cha.play(buzz_sou, -1)
 
 ## MAIN GAMEPLAY LOOP ##
 while running :
     # TIME CONTROL #
-##    amb_cha.play(buzz_sou, -1)
     delta_time = clock.tick() / 1000
 
     ## GAMEPLAY ##
     if ui_index is None :
         ## UPDATE ##
-        amb_cha.play(buzz_sou, -1)
         pcol_x, pcol_y = player_x + 32, player_y + 32
         player_rect = pygame.Rect(pcol_x - 10, pcol_y - 18, 20, 45)
 
@@ -596,7 +590,7 @@ while running :
                 continue
 
             # COLLISION WITH MONSTER #
-            if collide_rect.colliderect(monster.rect) :
+            if collide_rect.colliderect(monster.rect) and monster.stun_var <= 0 :
                 monster.find_target(sound_radius.tile)
 
         ## EVENT HANDLER ##
