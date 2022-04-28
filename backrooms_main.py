@@ -173,7 +173,7 @@ taser_sou = mixer.Sound("Assets//Audio//SFX//taser.wav")
 trapped_sou = mixer.Sound("Assets//Audio//SFX//trapped.wav")
 
 # SETS MASTER AUDIO LEVEL #
-mas_audio = 0
+mas_audio = 0.5
 player_step = 1
 
 # CHANGES AUDIO LEVELS TO MATCH MAS_AUDIO #
@@ -512,12 +512,13 @@ main_menu_cha.play(menu_light_sou, -1)
 ## MAIN GAMEPLAY LOOP ##
 while running :
     # TIME CONTROL #
-    amb_cha.play(buzz_sou, -1)
+##    amb_cha.play(buzz_sou, -1)
     delta_time = clock.tick() / 1000
 
     ## GAMEPLAY ##
     if ui_index is None :
         ## UPDATE ##
+        amb_cha.play(buzz_sou, -1)
         pcol_x, pcol_y = player_x + 32, player_y + 32
         player_rect = pygame.Rect(pcol_x - 10, pcol_y - 18, 20, 45)
 
