@@ -114,7 +114,7 @@ back_uc = pygame.image.load("Assets//Video//Main Menu//back_unclicked.png")
 back_c = pygame.image.load("Assets//Video//Main Menu//back_clicked.png")
 
 # GAME OVER IMAGES #
-game_over_img = pygame.image.load("Assets//Video//game_over.png")
+game_over_img = pygame.image.load("Assets//Video//death screen.png")
 
 # SPRITESHEET ITERATORS #
 sam_y = 0
@@ -508,11 +508,11 @@ def game_over(victory=False) :
 
 # PLAYS INITIAL AUDIO CONFIGURATION #
 main_menu_cha.play(menu_light_sou, -1)
-amb_cha.play(buzz_sou, -1)
 
 ## MAIN GAMEPLAY LOOP ##
 while running :
     # TIME CONTROL #
+    amb_cha.play(buzz_sou, -1)
     delta_time = clock.tick() / 1000
 
     ## GAMEPLAY ##
@@ -1086,19 +1086,7 @@ while running :
 
     ## MAIN MENU SCREEN ##
     elif ui_index == 0 :
-<<<<<<< HEAD
-        ## UPDATE ##
-        frame_timer -= frame_delay
-        if frame_timer <= 0:
-            frame_timer = frame_delay
-        main_y = 0
-        if 1 <= frame_timer <= 2:
-            main_y = 600
-        else:
-            main_y = 0
 
-=======
->>>>>>> cb6399a5d028b50cffc1098965939e496de810a3
         # RESETS NECESSARY VARIABLES #
         hover_int = -1
         button_img_list = [play_uc, options_uc, quit_uc]
