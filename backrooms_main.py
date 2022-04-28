@@ -1208,7 +1208,7 @@ while running :
                         if hover_int == 0:
                             ui_index = None
                             main_menu_cha.fadeout(5000)
-                            amb_cha.fadeout(3000)
+                            #amb_cha.fadeout(3000)
                             ui_sfx.play(transition_sou)
 
                         # GOES TO OPTIONS MENU #
