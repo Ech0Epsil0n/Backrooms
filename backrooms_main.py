@@ -69,6 +69,7 @@ move_list = []
 
 debug = False
 menu = True
+jam_sound = False
 
 ## VIDEO INITIALIZATION ##
 win.blit(preload_surf("Loading Video Assets..."), (0, 0))
@@ -95,9 +96,13 @@ teleport = pygame.image.load("Assets//Video//Static Entities//teleport.png")
 # MAP #
 carpet_img = pygame.image.load("Assets//Tilesets-Tileset Images//carpet.png")
 door_img = pygame.image.load("Assets//Video//Static Entities//door.png")
+top_door = pygame.image.load("Assets//Tilesets-Tileset Images//top_door.png")
+right_door = pygame.image.load("Assets//Tilesets-Tileset Images//right_door.png")
+left_door = pygame.image.load("Assets//Tilesets-Tileset Images//left_door.png")
 
 # MASTER LIST OF STATIC ENTITIES #
-static_list = [small_key, big_key, backpack, hammer, stun, trap_escape, lost_item, bear_trap, teleport]
+static_list = [small_key, big_key, backpack, hammer, stun, trap_escape, lost_item, bear_trap, teleport, top_door,
+               right_door, left_door, door_img]
 
 # MAIN MENU IMAGES #
 main_menu_background = pygame.image.load("Assets//Video//Main Menu//main_menu_sprites.png")
@@ -174,6 +179,7 @@ hammer_sou = mixer.Sound("Assets//Audio//SFX//hammer.wav")
 pickup_sou = mixer.Sound("Assets//Audio//SFX//pickup.wav")
 taser_sou = mixer.Sound("Assets//Audio//SFX//taser.wav")
 trapped_sou = mixer.Sound("Assets//Audio//SFX//trapped.wav")
+denied_sou = mixer.Sound("Assets//Audio//SFX//denied.wav")
 
 # SETS MASTER AUDIO LEVEL #
 mas_audio = 1
@@ -421,22 +427,36 @@ win.blit(preload_surf("Generating Map..."), (0, 0))
 pygame.display.flip()
 
 ## MAP GENERATION ##
-map_loader = 1
+map_loader = 0
 map_surf, objects, tiles, walls = map_reader.load_map(map_loader)
 doors = [map_reader.Tile(64, 64, 1, 1)]
 
 ## MONSTER GENERATION ##
-mons_start_pos = [(64, 64), (192, 64)]
+mons_start_pos = [(512, 128), (128, 64)]
 monster = Monster(mons_start_pos[map_loader])
 
 ## PLAYER GENERATION ##
-player_start_pos = [(576, 900), (704, 800)]
+player_start_pos = [(928, 1895), (704, 800)]
 player_x, player_y = player_start_pos[map_loader][0], player_start_pos[map_loader][1]
 
 ## STATIC ENTITY GENERATION ##
 for object in objects :
     entities.append(classes.StaticEntity((object[0], object[1]), object[2], object[3], static_list[int(object[2])],
                     tiles))
+
+# ADDS DOORS TO WALLS LIST #
+walls.append(map_reader.Tile(64, 64, 1, 1, False))
+
+for entity in entities :
+    if entity.class_type > 8 :
+        walls.append(entity.tile)
+
+        # ADDS SECOND TILE AS WELL #
+        if entity.class_type == 9 :
+            walls.append(tiles[entity.tile.grid_y][entity.tile.grid_x - 1])
+
+        if entity.class_type > 9 and entity.class_type != 12 :
+            walls.append(tiles[entity.tile.grid_y - 1][entity.tile.grid_x])
 
 ## FUNCTION DEFINITION ##
 def game_over(victory=False) :
@@ -749,6 +769,10 @@ while running :
                     if event.key == pygame.K_LALT :
                         monster.find_target(targ_tile)
 
+                    # TELEPORTS PLAYER TO TARGET TILE #
+                    if event.key == pygame.K_LCTRL :
+                        player_x, player_y = targ_tile.x, targ_tile.y
+
                     # PRINTS PLAYER POSITION #
                     if event.key == pygame.K_F2 :
                         print(f"PLAYER POS: ({player_tile.grid_x}, {player_tile.grid_y})")
@@ -927,7 +951,7 @@ while running :
                         inventory.append((entity, entity.image))
 
                 # TRAP COLLISION #
-                else :
+                elif entity.class_type < 9 :
                     # ENTITY REMOVAL/SOUND GENERATION #
                     entities.remove(entity)
                     static_ent_sfx.play(trapped_sou)
@@ -954,6 +978,42 @@ while running :
                         rand_tile = randint(0, len(tile_list) - 1)
                         player_x, player_y = tile_list[rand_tile].x, tile_list[rand_tile].y
 
+                # DOOR COLLISION #
+                if entity.class_type > 8 :
+                    # LOOPS THROUGH INVENTORY LOOKING FOR SMALL_KEY #
+                    unlock_bool = False
+                    for key in inventory :
+                        if key[0].class_type == 0 :
+                            unlock_bool = True
+                            fav_key = key
+
+                    # IF KEYS ARE AVAILABLE, USES A KEY AND UNLOCKS DOOR #
+                    if unlock_bool == True :
+                        doors.remove(entity)
+                        inventory.remove(key)
+                        classes.sound_generation((player_x, player_y), 300, player_tile)
+
+                    # IF KEYS ARE NOT AVAILABLE, PLAYS JAMMING SOUND #
+                    else :
+                        if jam_sound == False :
+                            jam_sound = True
+                            player_sfx.stop()
+                            player_sfx.play(denied_sou)
+
+            # RESETS JAM SOUND IF VALID #
+            temp_list = []
+            for item in entities :
+                if item.class_type > 8 :
+                    temp_list.append(item)
+
+            reset_bool = True
+            for door in temp_list :
+                if player_rect.colliderect(door.collide_rect) :
+                    reset_bool = False
+
+            if reset_bool == True :
+                jam_sound = False
+
         # WALL COLLISION #
         for wall in walls :
             # LEFT #
@@ -974,7 +1034,7 @@ while running :
             # DOWN #
             if pcol_x > wall.x and pcol_x < wall.x + 64 :
                 if pcol_y > wall.y and pcol_y < wall.y + 81 :
-                    player_y = wall.y + 50
+                    player_y = wall.y + 49
 
         # PLAYER-DOOR COLLISION #
         for door in doors :
@@ -983,7 +1043,7 @@ while running :
             if door_rect.colliderect(player_rect) :
                 key_bool = False
                 for item in inventory :
-                    if item[0].class_type == 0 :
+                    if item[0].class_type == 1 :
                         key_bool = True
 
                 if key_bool == True :
@@ -1208,7 +1268,7 @@ while running :
                         if hover_int == 0:
                             ui_index = None
                             main_menu_cha.fadeout(5000)
-                            #amb_cha.fadeout(3000)
+                            amb_cha.set_volume(mas_audio / 20)
                             ui_sfx.play(transition_sou)
 
                         # GOES TO OPTIONS MENU #

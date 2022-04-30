@@ -132,14 +132,14 @@ def load_map(index) :
                             calculating = False
                             pass
 
-                if tileset_int == 0 or value == 0 :
-                    wall = True
-
                 # RESETS NECESSARY VARIABLES #
                 fav_tileset = tilesets[tileset_int]
                 column_count = fav_tileset.columns
                 value_x = value - fav_tileset.gid
                 value_y = 0
+
+                if fav_tileset.name == "newwals" or value == 0 :
+                    wall = True
 
                 # FINDS PROPER ROW OF TILESET TO BLIT FROM #
                 if column_count != 1 :

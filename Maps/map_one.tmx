@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.5" tiledversion="1.7.2" orientation="orthogonal" renderorder="right-down" width="32" height="32" tilewidth="64" tileheight="64" infinite="0" nextlayerid="3" nextobjectid="27">
+ <editorsettings>
+  <export target="map_one.json" format="json"/>
+ </editorsettings>
+ <tileset firstgid="1" name="carpet" tilewidth="64" tileheight="64" tilecount="1" columns="1">
+  <image source="../Assets/Tilesets-Tileset Images/carpet.png" trans="ff00ff" width="64" height="64"/>
+ </tileset>
+ <tileset firstgid="2" name="cracked_walls" tilewidth="64" tileheight="64" tilecount="81" columns="9">
+  <image source="../Assets/Tilesets-Tileset Images/cracked_walls.png" trans="ff00ff" width="600" height="594"/>
+ </tileset>
+ <tileset firstgid="83" name="decor_img" tilewidth="64" tileheight="64" tilecount="4" columns="4">
+  <image source="../Assets/Tilesets-Tileset Images/decor_img.png" trans="ff00ff" width="256" height="64"/>
+ </tileset>
+ <tileset firstgid="87" name="newwals" tilewidth="64" tileheight="64" tilecount="81" columns="9">
+  <image source="../Assets/Tilesets-Tileset Images/newwals.png" trans="ff00ff" width="600" height="594"/>
+ </tileset>
+ <tileset firstgid="168" name="door" tilewidth="64" tileheight="64" tilecount="1" columns="1">
+  <image source="../Assets/Video/Static Entities/door.png" trans="ff00ff" width="64" height="64"/>
+ </tileset>
+ <layer id="1" name="Tile Layer 1" width="32" height="32">
+  <data encoding="csv">
+87,88,88,88,88,88,88,88,88,88,88,88,88,88,88,88,88,88,88,88,88,88,88,88,88,88,88,88,88,88,88,89,
+96,1,1,1,1,1,88,88,1,1,1,1,1,1,1,88,88,96,88,96,88,88,88,88,88,88,88,88,88,1,1,88,
+96,88,88,88,1,88,88,88,1,1,1,1,1,1,1,88,88,88,88,88,88,1,1,1,1,1,1,1,1,1,1,88,
+96,1,1,1,1,1,88,88,1,1,1,1,1,1,1,88,88,88,88,88,88,88,88,88,88,88,88,88,88,1,1,88,
+96,1,1,1,1,1,2,2,1,1,1,1,1,1,1,88,88,88,88,88,88,88,88,88,88,88,88,88,88,1,1,88,
+96,1,1,1,1,1,88,88,1,1,1,1,1,1,1,88,88,88,88,88,1,1,1,1,1,88,88,88,88,1,1,88,
+96,1,1,88,88,88,88,88,88,88,88,88,88,1,1,88,88,96,88,96,1,1,1,1,1,88,88,88,88,88,1,88,
+96,1,1,88,88,88,88,88,88,88,88,88,88,1,1,88,88,88,88,88,1,1,1,1,1,88,88,1,1,1,1,88,
+96,1,1,1,1,1,1,1,1,1,1,1,1,1,1,88,88,96,88,96,1,1,1,1,1,88,88,1,1,1,1,88,
+96,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,88,
+96,1,1,88,88,1,88,88,1,1,1,1,1,1,1,1,88,88,1,1,1,1,1,1,1,1,1,1,1,1,1,88,
+96,1,1,88,88,1,88,88,1,1,1,1,1,1,1,1,88,88,88,1,1,1,1,1,1,88,88,1,1,1,1,88,
+96,88,88,88,88,2,88,88,88,88,88,88,88,88,88,1,88,88,88,88,1,1,1,1,1,88,88,1,1,1,1,88,
+96,88,88,88,88,88,88,88,88,88,88,88,88,88,88,1,88,88,88,88,88,1,1,1,1,88,88,88,1,88,88,88,
+96,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,88,88,88,88,88,88,1,1,1,88,88,88,1,88,88,88,
+96,88,1,88,88,88,88,88,88,88,88,88,88,88,1,1,88,88,1,88,88,88,88,1,1,88,88,1,1,88,1,88,
+96,88,1,88,88,88,88,88,88,88,88,88,88,88,1,1,88,88,1,1,88,88,88,88,1,88,88,1,1,88,1,88,
+96,1,1,1,88,1,1,88,88,88,88,88,88,88,1,1,88,88,1,1,1,88,88,88,88,88,88,1,1,1,1,88,
+96,1,1,1,2,1,1,88,88,88,88,88,88,96,1,1,88,88,1,1,1,1,88,88,88,88,88,1,1,88,1,88,
+96,1,1,1,88,1,1,1,88,88,1,1,1,1,1,1,88,88,1,1,1,1,88,88,88,88,88,1,1,88,1,88,
+96,1,1,88,88,1,1,1,1,1,1,1,1,1,1,1,88,88,1,1,1,1,1,88,88,88,88,88,1,88,1,88,
+96,1,1,88,88,1,1,1,88,88,1,1,88,96,1,1,88,88,88,88,88,1,1,88,88,88,88,88,88,88,1,88,
+96,1,1,88,88,88,88,96,88,88,1,1,88,88,1,1,2,2,1,1,1,1,1,1,1,1,1,88,88,88,1,88,
+96,1,1,88,88,88,88,88,88,88,1,1,88,88,1,1,88,88,88,88,88,88,1,1,88,88,88,88,88,88,1,88,
+96,1,1,88,88,1,1,1,88,88,1,1,88,88,1,1,88,88,88,88,88,88,1,1,88,88,88,88,88,88,1,88,
+96,1,1,88,88,1,1,1,88,88,1,1,88,88,1,1,88,88,1,1,1,1,1,1,88,1,1,1,1,1,1,88,
+96,1,1,88,88,88,1,1,88,88,1,1,88,96,1,1,2,2,1,1,1,1,1,1,2,1,1,1,1,88,88,88,
+96,1,1,88,88,88,88,1,1,1,1,1,88,88,1,1,88,88,1,1,1,1,1,1,88,1,1,1,1,88,88,88,
+96,1,1,88,88,88,88,88,88,88,1,1,88,88,1,1,88,88,88,88,88,1,1,1,88,1,1,1,1,88,88,88,
+96,1,1,1,1,1,88,88,88,88,1,1,88,88,1,1,88,88,1,1,1,1,1,1,88,1,1,1,1,88,88,88,
+96,1,1,1,1,1,88,88,88,88,1,1,88,88,1,1,88,88,88,88,88,88,88,88,88,88,88,88,88,88,96,88,
+105,106,106,106,106,106,106,106,106,106,106,106,106,106,106,106,106,106,106,106,106,106,106,106,106,106,106,106,106,106,106,107
+</data>
+ </layer>
+ <objectgroup id="2" name="Objects">
+  <object id="1" name="Top-Down Door" type="11" x="832" y="1216">
+   <point/>
+  </object>
+  <object id="2" name="Bottom-Right Door" type="9" x="1344" y="1344">
+   <point/>
+  </object>
+  <object id="3" name="Top-Right Door" type="10" x="1600" y="576">
+   <point/>
+  </object>
+  <object id="4" name="Bottom-Left Door" type="11" x="384" y="512">
+   <point/>
+  </object>
+  <object id="5" name="Winner Door" type="12" x="1344" y="128">
+   <point/>
+  </object>
+  <object id="6" name="Hammer" type="3" x="384" y="1600">
+   <point/>
+  </object>
+  <object id="7" name="TRAP [Bear]" type="7" x="384" y="1280">
+   <point/>
+  </object>
+  <object id="8" name="Backpack" type="2" x="320" y="1920">
+   <point/>
+  </object>
+  <object id="10" name="TRAP [Item]" type="6" x="88" y="1433.33">
+   <point/>
+  </object>
+  <object id="11" name="Hammer" type="3" x="128" y="704">
+   <point/>
+  </object>
+  <object id="13" name="Top-Left Door" type="9" x="832" y="384">
+   <point/>
+  </object>
+  <object id="14" name="Trap Escape" type="5" x="804" y="128">
+   <point/>
+  </object>
+  <object id="15" name="TRAP [Bear]" type="7" x="793" y="190">
+   <point/>
+  </object>
+  <object id="16" name="TRAP [Tele]" type="8" x="700" y="1916">
+   <point/>
+  </object>
+  <object id="17" name="Tazer" type="4" x="1216" y="1152">
+   <point/>
+  </object>
+  <object id="18" name="Small Key" type="0" x="1728" y="1792">
+   <point/>
+  </object>
+  <object id="19" name="Small Key" type="0" x="1650.67" y="1432">
+   <point/>
+  </object>
+  <object id="20" name="Small Key" type="0" x="1216" y="1728">
+   <point/>
+  </object>
+  <object id="21" name="TRAP [ITEM]" type="6" x="1280" y="1664">
+   <point/>
+  </object>
+  <object id="23" name="TRAP [BEAR]" type="7" x="1280" y="1750">
+   <point/>
+  </object>
+  <object id="24" name="Small Key" type="0" x="265.333" y="1944">
+   <point/>
+  </object>
+  <object id="25" name="Small Key" type="0" x="906.667" y="86.6667">
+   <point/>
+  </object>
+  <object id="26" name="Big Key" type="1" x="336" y="785.333">
+   <point/>
+  </object>
+ </objectgroup>
+</map>
